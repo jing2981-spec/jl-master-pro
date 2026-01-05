@@ -1,0 +1,8 @@
+{
+  "name": "JL Master Pro",
+  "description": "A comprehensive digital assistant for construction masters, featuring project management, ledger with HST calculation, and AI-powered material notes.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
