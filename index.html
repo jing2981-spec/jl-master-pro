@@ -782,9 +782,9 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
       <div id="form-login">
         <div id="auth-err" class="err-msg"></div>
         <div class="auth-inp-wrap">
-          <span class="auth-inp-icon">📧</span>
-          <input class="auth-inp" id="auth-email" type="email"
-            placeholder="邮箱" autocomplete="email"/>
+          <span class="auth-inp-icon">📱</span>
+          <input class="auth-inp" id="auth-email" type="tel"
+            placeholder="手机号" autocomplete="tel"/>
         </div>
         <div class="auth-inp-wrap" style="margin-bottom:20px;">
           <span class="auth-inp-icon">🔐</span>
@@ -799,7 +799,7 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
         </button>
       </div>
 
-      <!-- REGISTER FORM (Phone + SMS Code) -->
+      <!-- REGISTER FORM (Phone + Password) -->
       <div id="form-reg" style="display:none;">
         <div id="reg-err" class="err-msg"></div>
 
@@ -808,22 +808,27 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
         <div class="auth-inp-wrap">
           <span class="auth-inp-icon">📱</span>
           <input class="auth-inp" id="reg-phone" type="tel"
-            placeholder="手机号" autocomplete="tel" style="padding-right:120px;"/>
-          <button id="btn-send-code" onclick="sendSmsCode()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);
-            background:linear-gradient(135deg,#E86A00,#FFB020);color:#fff;border:none;border-radius:20px;
-            padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">获取验证码</button>
+            placeholder="手机号" autocomplete="tel"/>
+        </div>
+        <div class="auth-inp-wrap">
+          <span class="auth-inp-icon">🔐</span>
+          <input class="auth-inp" id="reg-pass" type="password"
+            placeholder="设置密码（至少6位）" autocomplete="new-password"
+            style="padding-right:44px;"/>
+          <span class="pass-eye" onclick="togglePw('reg-pass',this)"
+            style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;">👁</span>
         </div>
         <div class="auth-inp-wrap" style="margin-bottom:20px;">
-          <span class="auth-inp-icon">🔑</span>
-          <input class="auth-inp" id="reg-code" type="text"
-            placeholder="短信验证码" autocomplete="one-time-code" inputmode="numeric" maxlength="6"/>
+          <span class="auth-inp-icon">🔐</span>
+          <input class="auth-inp" id="reg-pass2" type="password"
+            placeholder="确认密码" autocomplete="new-password"
+            style="padding-right:44px;"/>
+          <span class="pass-eye" onclick="togglePw('reg-pass2',this)"
+            style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;">👁</span>
         </div>
         <button class="btn-orange-glow" onclick="doPhoneRegister()">
-          <span id="btn-reg-txt">注册 / 登录</span>
+          <span id="btn-reg-txt">注册</span>
         </button>
-        <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--dim);">
-          未注册的手机号将自动创建账户
-        </div>
       </div>
 
     </div>
@@ -929,11 +934,11 @@ zh:{
   lang_btn:'确认',
   auth_tag:'MASTER PRO · 记账大师',
   t_login:'登录', t_reg:'手机注册',
-  lbl_email:'📧 邮箱', lbl_pass:'🔐 密码',
+  lbl_email:'📱 手机号', lbl_pass:'🔐 密码',
   btn_login:'登录',
-  lbl_name:'👤 姓名', lbl_reg_email:'📧 邮箱',
+  lbl_name:'👤 姓名', lbl_reg_email:'📱 手机号',
   lbl_reg_pass:'🔐 密码（至少6位）', lbl_reg_pass2:'🔐 确认密码',
-  btn_reg:'注册 / 登录',
+  btn_reg:'注册',
   or:'或 / OR', sw_lang:'切换语言',
   plan_title:'选择方案', plan_sub:'可随时切换 · 随时取消',
   trial:'60天免费试用',
@@ -1575,39 +1580,22 @@ function _localLogin(em,pw,err){
   } else {err.textContent=t('err_cred');}
 }
 
-/* ── Phone SMS Register/Login ── */
-var _smsCountdown=0,_smsTimer=null;
-function sendSmsCode(){
-  var phone=$i('reg-phone').value.trim();
-  var err=$i('reg-err');err.textContent='';
-  if(!phone||phone.length<11){err.textContent='请输入有效的手机号';return;}
-  if(_smsCountdown>0)return;
-  /* TODO: integrate with Supabase Phone Auth or SMS provider */
-  /* sb.auth.signInWithOtp({phone:'+86'+phone}) */
-  var btn=$i('btn-send-code');
-  _smsCountdown=60;
-  btn.style.opacity='0.6';btn.style.pointerEvents='none';
-  _smsTimer=setInterval(function(){
-    _smsCountdown--;
-    if(_smsCountdown<=0){
-      clearInterval(_smsTimer);
-      btn.textContent='获取验证码';
-      btn.style.opacity='1';btn.style.pointerEvents='auto';
-    } else {
-      btn.textContent=_smsCountdown+'s';
-    }
-  },1000);
-  showToast('📱 验证码已发送');
-}
+/* ── Phone Register (no SMS verification) ── */
 function doPhoneRegister(){
   var phone=$i('reg-phone').value.trim();
-  var code=$i('reg-code').value.trim();
+  var pw=$i('reg-pass').value;
+  var pw2=$i('reg-pass2').value;
   var err=$i('reg-err');err.textContent='';
   if(!phone||phone.length<11){err.textContent='请输入有效的手机号';return;}
-  if(!code||code.length<4){err.textContent='请输入验证码';return;}
-  /* TODO: integrate with Supabase Phone Auth verify */
-  /* sb.auth.verifyOtp({phone:'+86'+phone, token:code, type:'sms'}) */
-  showToast('✅ 手机验证功能即将开放，敬请期待！');
+  if(pw.length<6){err.textContent='密码至少6位';return;}
+  if(pw!==pw2){err.textContent='两次密码不一致';return;}
+  /* Use phone as email for Supabase compatibility */
+  var fakeEmail=phone+'@phone.jlpro.ca';
+  _localRegister(phone,fakeEmail,pw);
+  showToast('✅ 注册成功！请登录');
+  switchTab('login');
+  $i('auth-email').value=phone;
+  $i('auth-pass').value=pw;
 }
 
 function doRegister(){
