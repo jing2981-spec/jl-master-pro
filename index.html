@@ -129,12 +129,12 @@ function _saveToken(token,userId){
 console.log('✅ Supabase REST mode | _sb='+_sb+' | savedToken='+!!_sbToken);
 </script>
 <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-L5JWMJGH4Y"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0CGMQFVXMT"></script>
 <script>
 window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
 gtag('js',new Date());
-gtag('config','G-L5JWMJGH4Y');
+gtag('config','G-0CGMQFVXMT');
 /* Helper: safe GA4 event — no-op if gtag not loaded */
 function ga4(ev,params){try{if(typeof gtag==='function')gtag('event',ev,params||{});}catch(e){}}
 </script>
@@ -353,12 +353,12 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 .entry-card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;
   padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.15s;}
 .entry-card:active{opacity:.8;}
-.e-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.e-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
 .e-body{flex:1;min-width:0;}
-.e-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.e-meta{font-size:10px;color:#5A616B;margin-top:2px;}
-.e-amt{font-family:monospace;font-weight:900;font-size:14px;color:var(--or);text-align:right;white-space:nowrap;}
-.e-tax{font-size:9px;color:#8A909A;font-family:monospace;text-align:right;}
+.e-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.e-meta{font-size:13px;color:#5A616B;margin-top:2px;}
+.e-amt{font-family:monospace;font-weight:900;font-size:18px;color:var(--or);text-align:right;white-space:nowrap;}
+.e-tax{font-size:12px;color:#8A909A;font-family:monospace;text-align:right;}
 
 /* ── PROJECT CARDS ── */
 .proj-card{background:var(--s1);border:1px solid var(--bd);border-radius:16px;
@@ -478,10 +478,10 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 .sum-bar{display:flex;gap:8px;margin-bottom:14px;}
 .sum-card{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:13px;padding:11px 12px;}
 .sum-val{font-size:26px;font-weight:900;color:var(--or);font-family:monospace;}
-.sum-lbl{font-size:11px;color:var(--muted);margin-top:3px;font-family:monospace;}
+.sum-lbl{font-size:14px;color:var(--muted);margin-top:3px;font-family:monospace;}
 .filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none;}
 .filter-row::-webkit-scrollbar{display:none;}
-.fchip{padding:8px 16px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;
+.fchip{padding:8px 16px;border-radius:22px;font-size:15px;font-weight:700;cursor:pointer;
   white-space:nowrap;border:1px solid var(--bd);color:var(--dim);background:transparent;transition:.15s;}
 .fchip.active{background:var(--or);color:#000;border-color:var(--or);}
 
@@ -511,14 +511,14 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 .cm-title,.cm-hd{font-size:18px;font-weight:900;color:var(--or);margin-bottom:16px;text-align:center;
   letter-spacing:.5px;}
 .cm-field{margin-bottom:12px;}
-.cm-label{font-size:11px;color:var(--dim);font-weight:700;text-transform:uppercase;
+.cm-label{font-size:14px;color:var(--dim);font-weight:700;text-transform:uppercase;
   letter-spacing:.8px;margin-bottom:4px;display:block;}
 .cm-input{width:100%;padding:12px 18px;background:var(--s2);border:1px solid var(--bd);
   border-radius:30px;color:var(--txt);font-size:16px;outline:none;
   font-family:inherit;transition:border-color .2s;box-sizing:border-box;}
 .cm-input:focus{border-color:var(--or);box-shadow:0 0 0 2px rgba(255,140,0,.12);}
 .cm-input.mono{font-family:'SF Mono',monospace;font-weight:700;font-size:20px;color:var(--or);}
-.cm-select{width:100%;padding:12px 18px;background:var(--s2);border:1px solid var(--bd);
+.cm-select{width:100%;padding:12px 18px;background:var(--s2);border:1px solid var(--bd);font-size:16px;
   border-radius:30px;color:var(--txt);font-size:14px;outline:none;-webkit-appearance:none;
   appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 16px center;box-sizing:border-box;}
@@ -2174,30 +2174,40 @@ function selectCatTile(el){
 
 /* ── NLP keyword maps ── */
 var FAMILY_NLP = [
-  /* Food & Dining — highest priority supermarket chains included */
-  {kw:['超市','grocery','groceries','costco','walmart','nofrills','no frills','loblaws',
-        'metro','sobeys','food basics','freshco','t&t','买菜','food','饭','吃'],
-       cat:'food', zh:'餐饮食品', en:'Food & Grocery'},
-  {kw:['餐厅','restaurant','dinner','lunch','breakfast','外卖','吃饭','麦当劳',
-        'mcdonalds','mcds','tim hortons','timmies','starbucks','coffee','pizza','sushi',
-        'chinese','thai','korean','vietnamese','cafe','咖啡','奶茶'],
-       cat:'food', zh:'餐饮外食', en:'Dining Out'},
-  /* Shopping — retail chains */
+  /* ★ Food & Dining — HIGHEST PRIORITY — must be before shopping */
+  {kw:['早餐','午餐','晚餐','早饭','午饭','晚饭','吃饭','买饭','吃','饭','餐',
+       '水果','蔬菜','菜','肉','鱼','鸡','猪','牛','羊','虾','蛋','米','面',
+       '奶茶','咖啡','饮料','零食','小吃','便当','盒饭','外卖','快餐','宵夜','点心',
+       '面包','蛋糕','饼干','牛奶','酸奶','奶','果汁','茶','豆浆',
+       '火锅','烧烤','串','饺子','面条','粥','汤','包子','馒头',
+       '餐厅','饭店','食堂','超市','买菜','菜市场','菜场',
+       'grocery','groceries','costco','walmart','nofrills','no frills','loblaws',
+       'metro','sobeys','food basics','freshco','t&t',
+       'restaurant','dinner','lunch','breakfast','food','meal',
+       'mcdonalds','mcds','tim hortons','timmies','starbucks','coffee','pizza','sushi',
+       'cafe','kfc','subway','麦当劳','肯德基','星巴克','食物','食品'],
+       cat:'food', zh:'餐饮食品', en:'Food & Dining'},
+  /* Shopping — retail (买 alone no longer here to avoid catching 买菜/买饭) */
   {kw:['购物','shopping','amazon','淘宝','shein','dollarama','dollar','winners','homesense',
-        'zara','h&m','old navy','gap','target','best buy','衣服','clothes','shoes','鞋',
-        'bag','包','买'],
+        'zara','h&m','old navy','gap','target','best buy',
+        '衣服','clothes','shoes','鞋','鞋袜','袜子','裤子','裙子','外套','帽子',
+        'bag','包','买东西','买衣服','买鞋','逛街',
+        '手机','电脑','电器','家电','数码'],
        cat:'shopping', zh:'购物消费', en:'Shopping'},
   /* Transport */
   {kw:['加油','gas','fuel','petrol','esso','shell','pioneer','oil','油费',
-        'uber','lyft','taxi','地铁','ttc','presto','go train','bus','公交','停车','parking'],
+        'uber','lyft','taxi','地铁','ttc','presto','go train','bus','公交','停车','parking',
+        '打车','滴滴','出租车','高铁','火车','飞机','机票'],
        cat:'transport', zh:'交通出行', en:'Transport'},
   /* Housing / Bills */
   {kw:['电费','hydro','水费','water','gas bill','heating','暖气','utility','网费','internet',
-        'rogers','bell','telus','fido','koodo','rent','房租','物业','condo','mortgage','贷款'],
+        'rogers','bell','telus','fido','koodo','rent','房租','物业','condo','mortgage','贷款',
+        '话费','手机费','电话费','宽带'],
        cat:'housing', zh:'住房水电', en:'Home & Bills'},
   /* Education */
   {kw:['学费','tuition','school','学校','课','class','补习','补课','培训','training',
-        'education','书','book','course','lessons','daycare','托儿','幼儿园','camp','activity'],
+        'education','书','book','course','lessons','daycare','托儿','幼儿园','camp','activity',
+        '文具','书包'],
        cat:'education', zh:'教育培训', en:'Education & Kids'},
 ];
 /* Default for unmatched family input → shopping */
@@ -2217,9 +2227,37 @@ var CONTRACTOR_NLP = [
 
 function parseVoice(text){
   var lower=text.toLowerCase();
-  // Extract amount: look for $ or numbers
+
+  /* ═══ Chinese number word conversion ═══ */
+  var CN_NUM={'零':0,'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,
+              '百':100,'千':1000,'万':10000,'〇':0};
+  function cnToNum(s){
+    if(!s)return 0;
+    var total=0,section=0,num=0;
+    for(var i=0;i<s.length;i++){
+      var c=s[i],v=CN_NUM[c];
+      if(v===undefined)continue;
+      if(v>=10){
+        if(v===10&&num===0)num=1;
+        if(v>=10000){section=(section+num*v);num=0;}
+        else if(v>=100){section=num*v;num=0;}
+        else{section=num*v;num=0;}
+      }else{num=v;}
+    }
+    total=section+num;
+    return total;
+  }
+
+  // Extract amount: look for $ or digits or Chinese numbers
   var amtM=text.match(/\$\s?([\d,]+\.?\d*)/)||text.match(/([\d]+\.?\d*)\s*(元|块|dollars?)?/);
   var amount=amtM?parseFloat(amtM[1].replace(',','')):0;
+
+  // Try Chinese number words if no digit amount found
+  if(amount<=0){
+    var cnM=text.match(/([零一二两三四五六七八九十百千万]+)\s*(元|块|毛|角|分|美元|刀)?/);
+    if(cnM){amount=cnToNum(cnM[1]);}
+  }
+
   if(amount<=0){// fallback random demo amount
     amount=[45,68,92,185,23,120,280][Math.floor(Math.random()*7)]; /* Family version */
   }
@@ -4564,4 +4602,43 @@ function showToast(msg){
 <!-- ══ PERMANENT: camera inputs + receipt fullview (never re-rendered) ══ -->
 <!-- 📷 CAMERA: capture="environment" = 直接调后置摄像头, 不弹文件夹 -->
 <input type="file" id="cam-input" accept="image/*" capture="environment" style="display:none" onchange="startScanning(this)">
-<!-- 📁 UPLOAD:
+<!-- 📁 UPLOAD: 无 capture 属性 = 弹文件选择/相册 -->
+<input type="file" id="upload-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+
+<div id="rec-fv" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:900;flex-direction:column;align-items:center;justify-content:center;padding:24px;" onclick="closeRecFull()">
+  <button style="position:absolute;top:max(16px,env(safe-area-inset-top,16px));right:16px;background:rgba(255,255,255,.18);border:none;border-radius:50%;width:38px;height:38px;color:#fff;font-size:20px;cursor:pointer;z-index:1;" onclick="event.stopPropagation();closeRecFull()">✕</button>
+  <img id="rec-fv-img" src="" alt="" style="max-width:100%;max-height:72vh;border-radius:14px;object-fit:contain;box-shadow:0 0 60px rgba(0,0,0,.8);">
+  <div id="rec-fv-meta" style="margin-top:16px;text-align:center;"></div>
+  <div id="rec-fv-acts" style="display:flex;gap:10px;margin-top:16px;width:100%;max-width:360px;"></div>
+</div>
+<!-- In-App Customer Service Chat -->
+<div class="cs-overlay" id="cs-overlay" onclick="closeCS(event)">
+  <div class="cs-dialog" onclick="event.stopPropagation()">
+    <div class="cs-header">
+      <h3 id="cs-title">💬 客服消息</h3>
+      <button class="cs-close" onclick="closeCS()">&times;</button>
+    </div>
+    <div class="cs-msgs" id="cs-msgs">
+      <div class="cs-empty" id="cs-empty"><span id="cs-empty-txt">👋 您好！有任何问题请留言，<br>我们会尽快回复您。</span></div>
+    </div>
+    <div class="cs-trial-bar" id="cs-trial-bar"></div>
+    <div class="cs-input-bar">
+      <input type="text" id="cs-input" placeholder="输入消息..." maxlength="500"
+             onkeydown="if(event.key==='Enter')sendCSMsg()">
+      <button onclick="sendCSMsg()" id="cs-send-btn">发送</button>
+    </div>
+  </div>
+</div>
+<!-- Plan Detail Modal -->
+<div class="plan-modal-overlay" id="plan-modal-ov" onclick="closePlanModal(event)">
+  <div class="plan-modal" onclick="event.stopPropagation()">
+    <button class="plan-modal-close" onclick="closePlanModal()">&times;</button>
+    <div class="plan-modal-icon" id="pm-icon"></div>
+    <div class="plan-modal-name" id="pm-name"></div>
+    <div class="plan-modal-price" id="pm-price"></div>
+    <div id="pm-feats"></div>
+    <button class="plan-modal-btn" id="pm-btn" onclick="pmSelect()"></button>
+  </div>
+</div>
+</body>
+</html>
