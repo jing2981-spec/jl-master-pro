@@ -805,6 +805,26 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 
         <!-- Family plan auto-selected -->
         <input type="hidden" id="reg-plan-type" value="family">
+
+        <!-- Pricing Plan Selection -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:10px;text-align:center;">🏠 选择套餐</div>
+          <div style="display:flex;gap:8px;">
+            <div id="plan-monthly" onclick="selectPlan('monthly')" style="flex:1;padding:14px 10px;border-radius:14px;border:2px solid var(--or);background:var(--orG);cursor:pointer;text-align:center;transition:.2s;">
+              <div style="font-size:20px;margin-bottom:4px;">📅</div>
+              <div style="font-size:14px;font-weight:900;color:var(--or);">月付</div>
+              <div style="font-size:18px;font-weight:900;color:var(--txt);margin:4px 0;">¥4.99<span style="font-size:11px;color:var(--dim);">/月</span></div>
+            </div>
+            <div id="plan-yearly" onclick="selectPlan('yearly')" style="flex:1;padding:14px 10px;border-radius:14px;border:2px solid var(--bd);background:var(--s1);cursor:pointer;text-align:center;position:relative;transition:.2s;">
+              <div style="position:absolute;top:-8px;right:10px;background:var(--or);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;">省2个月</div>
+              <div style="font-size:20px;margin-bottom:4px;">🎉</div>
+              <div style="font-size:14px;font-weight:900;color:var(--or);">年付</div>
+              <div style="font-size:18px;font-weight:900;color:var(--txt);margin:4px 0;">¥49<span style="font-size:11px;color:var(--dim);">/年</span></div>
+              <div style="font-size:10px;color:var(--green);font-weight:700;">≈ ¥4.08/月</div>
+            </div>
+          </div>
+        </div>
+
         <div class="auth-inp-wrap">
           <span class="auth-inp-icon">📱</span>
           <input class="auth-inp" id="reg-phone" type="tel"
@@ -1512,7 +1532,9 @@ function doLogin(){
   var em=$i('auth-email').value.trim().toLowerCase();
   var pw=$i('auth-pass').value;
   var err=$i('auth-err');err.textContent='';
-  if(!isEmail(em)){err.textContent=t('err_email');return;}
+  /* If input looks like a phone number, convert to fake email */
+  if(em&&!isEmail(em)&&/^\d{7,}$/.test(em)){em=em+'@phone.jlpro.ca';}
+  if(!isEmail(em)){err.textContent='请输入有效的手机号';return;}
   if(_authBusy)return; _authBusy=true;
   _showAuthLoading(true);
 
@@ -1578,6 +1600,20 @@ function _localLogin(em,pw,err){
     applyApp();showScreen('app-screen');goMod('voice');
     updateTrialBanner();
   } else {err.textContent=t('err_cred');}
+}
+
+/* ── Plan selection on register page ── */
+var _selectedPlan='monthly';
+function selectPlan(plan){
+  _selectedPlan=plan;
+  var m=$i('plan-monthly'),y=$i('plan-yearly');
+  if(plan==='monthly'){
+    m.style.border='2px solid var(--or)';m.style.background='var(--orG)';
+    y.style.border='2px solid var(--bd)';y.style.background='var(--s1)';
+  } else {
+    y.style.border='2px solid var(--or)';y.style.background='var(--orG)';
+    m.style.border='2px solid var(--bd)';m.style.background='var(--s1)';
+  }
 }
 
 /* ── Phone Register (no SMS verification) ── */
@@ -4528,43 +4564,4 @@ function showToast(msg){
 <!-- ══ PERMANENT: camera inputs + receipt fullview (never re-rendered) ══ -->
 <!-- 📷 CAMERA: capture="environment" = 直接调后置摄像头, 不弹文件夹 -->
 <input type="file" id="cam-input" accept="image/*" capture="environment" style="display:none" onchange="startScanning(this)">
-<!-- 📁 UPLOAD: 无 capture 属性 = 弹文件选择/相册 -->
-<input type="file" id="upload-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
-
-<div id="rec-fv" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:900;flex-direction:column;align-items:center;justify-content:center;padding:24px;" onclick="closeRecFull()">
-  <button style="position:absolute;top:max(16px,env(safe-area-inset-top,16px));right:16px;background:rgba(255,255,255,.18);border:none;border-radius:50%;width:38px;height:38px;color:#fff;font-size:20px;cursor:pointer;z-index:1;" onclick="event.stopPropagation();closeRecFull()">✕</button>
-  <img id="rec-fv-img" src="" alt="" style="max-width:100%;max-height:72vh;border-radius:14px;object-fit:contain;box-shadow:0 0 60px rgba(0,0,0,.8);">
-  <div id="rec-fv-meta" style="margin-top:16px;text-align:center;"></div>
-  <div id="rec-fv-acts" style="display:flex;gap:10px;margin-top:16px;width:100%;max-width:360px;"></div>
-</div>
-<!-- In-App Customer Service Chat -->
-<div class="cs-overlay" id="cs-overlay" onclick="closeCS(event)">
-  <div class="cs-dialog" onclick="event.stopPropagation()">
-    <div class="cs-header">
-      <h3 id="cs-title">💬 客服消息</h3>
-      <button class="cs-close" onclick="closeCS()">&times;</button>
-    </div>
-    <div class="cs-msgs" id="cs-msgs">
-      <div class="cs-empty" id="cs-empty"><span id="cs-empty-txt">👋 您好！有任何问题请留言，<br>我们会尽快回复您。</span></div>
-    </div>
-    <div class="cs-trial-bar" id="cs-trial-bar"></div>
-    <div class="cs-input-bar">
-      <input type="text" id="cs-input" placeholder="输入消息..." maxlength="500"
-             onkeydown="if(event.key==='Enter')sendCSMsg()">
-      <button onclick="sendCSMsg()" id="cs-send-btn">发送</button>
-    </div>
-  </div>
-</div>
-<!-- Plan Detail Modal -->
-<div class="plan-modal-overlay" id="plan-modal-ov" onclick="closePlanModal(event)">
-  <div class="plan-modal" onclick="event.stopPropagation()">
-    <button class="plan-modal-close" onclick="closePlanModal()">&times;</button>
-    <div class="plan-modal-icon" id="pm-icon"></div>
-    <div class="plan-modal-name" id="pm-name"></div>
-    <div class="plan-modal-price" id="pm-price"></div>
-    <div id="pm-feats"></div>
-    <button class="plan-modal-btn" id="pm-btn" onclick="pmSelect()"></button>
-  </div>
-</div>
-</body>
-</html>
+<!-- 📁 UPLOAD:
