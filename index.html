@@ -145,15 +145,18 @@ function sbRefreshSession(){
 
 console.log('✅ Supabase REST mode | _sb='+_sb+' | savedToken='+!!_sbToken);
 </script>
-<!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0CGMQFVXMT"></script>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NKLQVVL2');</script>
+<!-- End Google Tag Manager -->
 <script>
 window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());
-gtag('config','G-0CGMQFVXMT');
-/* Helper: safe GA4 event — no-op if gtag not loaded */
-function ga4(ev,params){try{if(typeof gtag==='function')gtag('event',ev,params||{});}catch(e){}}
+/* Helper: safe GA4 event — pushes to dataLayer for GTM to handle */
+function ga4(ev,params){try{dataLayer.push(Object.assign({event:ev},params||{}));}catch(e){}}
 </script>
 <script>window._RC=false;window._CDFAIL=false;</script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin onerror="window._CDFAIL=true"></script>
@@ -742,6 +745,10 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKLQVVL2"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 <!-- ══ SCREEN 0: LANGUAGE ══ -->
 <div id="lang-screen" class="screen" style="display:none !important;">
