@@ -77,8 +77,8 @@ function sbGetUser(){
 function sbSignOut(){
   if(!_sbToken) return Promise.resolve();
   return _sbFetch('/auth/v1/logout','POST',null,true).then(function(){
-    _sbToken=null;_sbUserId=null;
-    try{localStorage.removeItem('jl_sbToken');}catch(e){}
+    _sbToken=null;_sbUserId=null;_sbRefreshToken=null;
+    try{localStorage.removeItem('jl_sbToken');localStorage.removeItem('jl_sbRefreshToken');}catch(e){}
   });
 }
 
@@ -112,17 +112,34 @@ function sbDelete(table, query){
 }
 
 /* ── Save/restore token ── */
-function _saveToken(token,userId){
+var _sbRefreshToken=null;
+function _saveToken(token,userId,refreshToken){
   _sbToken=token;_sbUserId=userId;
+  if(refreshToken)_sbRefreshToken=refreshToken;
   try{
     localStorage.setItem('jl_sbToken',token);
     localStorage.setItem('jl_sbUserId',userId);
+    if(refreshToken)localStorage.setItem('jl_sbRefreshToken',refreshToken);
   }catch(e){}
+}
+/* ── Refresh expired token using refresh_token ── */
+function sbRefreshSession(){
+  if(!_sbRefreshToken) return Promise.resolve({data:null,error:{message:'No refresh token'}});
+  return _sbFetch('/auth/v1/token?grant_type=refresh_token','POST',{
+    refresh_token:_sbRefreshToken
+  }).then(function(res){
+    if(res.data&&res.data.access_token){
+      _saveToken(res.data.access_token, res.data.user.id, res.data.refresh_token);
+      console.log('🔄 Token refreshed successfully');
+    }
+    return res;
+  });
 }
 (function _restoreToken(){
   try{
     _sbToken=localStorage.getItem('jl_sbToken')||null;
     _sbUserId=localStorage.getItem('jl_sbUserId')||null;
+    _sbRefreshToken=localStorage.getItem('jl_sbRefreshToken')||null;
   }catch(e){}
 })();
 
@@ -333,13 +350,13 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
   border:1px solid var(--bd);border-radius:5px;background:transparent;font-family:monospace;}
 .content{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:100px;}
 .navbar{display:flex;background:var(--s0);border-top:1px solid var(--bd);
-  position:fixed;bottom:0;left:0;right:0;z-index:1000;min-height:56px;
+  position:fixed;bottom:0;left:0;right:0;z-index:1000;min-height:40px;
   padding-bottom:env(safe-area-inset-bottom,0);}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 2px 8px;
-  cursor:pointer;color:#1E1E1E;font-size:17px;font-weight:700;gap:2px;
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:3px 2px 4px;
+  cursor:pointer;color:#1E1E1E;font-size:12px;font-weight:700;gap:1px;
   transition:.15s;border:none;background:transparent;letter-spacing:.3px;}
 .nav-btn.active{color:var(--or);}
-.nav-icon{font-size:28px;}
+.nav-icon{font-size:20px;}
 
 /* ── MODULE SHARED ── */
 .mod{padding:14px 16px 140px;}
@@ -640,7 +657,7 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 .cat-tile:active{transform:scale(.95);}
 .cat-tile.sel{border-width:2px;}
 .cat-tile-icon{font-size:24px;margin-bottom:3px;}
-.cat-tile-lbl{font-size:8.5px;font-weight:700;color:var(--dim);line-height:1.2;}
+.cat-tile-lbl{font-size:13px;font-weight:700;color:var(--dim);line-height:1.2;}
 /* Budget progress bar */
 .budget-bar{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:11px 14px;margin-bottom:12px;}
 /* Entry highlight (new) */
@@ -809,6 +826,11 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
         <!-- Pricing Plan Selection -->
         <div style="margin-bottom:18px;">
           <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:10px;text-align:center;">🏠 选择套餐</div>
+          <!-- 免费试用提示 -->
+          <div style="background:linear-gradient(135deg,rgba(61,212,126,.12),rgba(61,212,126,.06));border:1.5px solid rgba(61,212,126,.35);border-radius:12px;padding:10px 14px;margin-bottom:12px;text-align:center;">
+            <div style="font-size:14px;font-weight:900;color:#2E9E5E;">🎁 新用户免费试用 45 天</div>
+            <div style="font-size:11px;color:#5A616B;margin-top:4px;">试用期结束前10天系统会提醒您续费</div>
+          </div>
           <div style="display:flex;gap:8px;">
             <div id="plan-monthly" onclick="selectPlan('monthly')" style="flex:1;padding:14px 10px;border-radius:14px;border:2px solid var(--or);background:var(--orG);cursor:pointer;text-align:center;transition:.2s;">
               <div style="font-size:20px;margin-bottom:4px;">📅</div>
@@ -961,7 +983,7 @@ zh:{
   btn_reg:'注册',
   or:'或 / OR', sw_lang:'切换语言',
   plan_title:'选择方案', plan_sub:'可随时切换 · 随时取消',
-  trial:'60天免费试用',
+  trial:'45天免费试用',
   btn_start:'开始免费试用 →',
   nb_voice:'主页', nb_receipt:'小票', nb_ledger:'账本', nb_projects:'项目', nb_settings:'设置',
   rec_scan_title:'小票扫描', rec_scan_btn:'📷 拍照扫描', rec_no_receipts:'暂无小票', rec_hint:'拍照后自动按日期归档 · 长按查看大图',
@@ -1037,7 +1059,7 @@ en:{
   btn_reg:'Create Account',
   or:'OR', sw_lang:'Change Language',
   plan_title:'Select Your Plan', plan_sub:'Switch anytime · Cancel whenever',
-  trial:'60-Day Free Trial',
+  trial:'45-Day Free Trial',
   btn_start:'Start Free Trial →',
   nb_voice:'Home', nb_receipt:'Receipt', nb_ledger:'Ledger', nb_projects:'Projects', nb_settings:'Settings',
   rec_scan_title:'Receipt Scanner', rec_scan_btn:'📷 Scan Receipt', rec_no_receipts:'No receipts yet', rec_hint:'Photos auto-archived by date. Tap to view.',
@@ -1550,7 +1572,7 @@ function doLogin(){
         setTimeout(function(){_localLogin(em,pw,err);},2000);
       } else {
         var d=res.data;
-        _saveToken(d.access_token, d.user.id);
+        _saveToken(d.access_token, d.user.id, d.refresh_token);
         var meta=d.user.user_metadata||{};
         /* ── Clear local data if different user ── */
         var prevId=S.user?S.user.sbId:null;
@@ -2414,8 +2436,17 @@ function handleMic(){
     lbl.textContent=t('v_tap');
     return;
   }
+  /* ── Detect Android browser ── */
+  var isAndroid=/android/i.test(navigator.userAgent);
+  var hasSR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  /* ── Android WebView / some browsers lack SpeechRecognition ── */
+  if(!hasSR||(isAndroid&&_isInStandaloneMode())){
+    /* Fallback: show manual input dialog for unsupported browsers */
+    _showManualInput(lbl);
+    return;
+  }
   /* ── Try real Web Speech API first ── */
-  if(window.SpeechRecognition||window.webkitSpeechRecognition){
+  if(hasSR){
     /* Request mic permission explicitly before creating SR */
     if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
@@ -2435,8 +2466,28 @@ function handleMic(){
     }
   } else {
     /* No WebSpeech API at all — prompt manual input */
-    lbl.textContent=S.lang==='zh'?'⚠️ 此浏览器不支持语音':'⚠️ No speech API available';
-    showToast(S.lang==='zh'?'请使用手动输入记账':'Please use manual input');
+    _showManualInput(lbl);
+  }
+}
+/* ── Detect PWA standalone mode ── */
+function _isInStandaloneMode(){
+  return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)
+    ||window.navigator.standalone===true;
+}
+/* ── Manual text input fallback for unsupported browsers ── */
+function _showManualInput(lbl){
+  var hint=S.lang==='zh'
+    ?'当前浏览器不支持语音识别，请手动输入\n例如：超市购物95 或 加油65'
+    :'Speech recognition unavailable.\nType your entry, e.g.: Groceries 95';
+  var text=prompt(hint,'');
+  if(text&&text.trim()){
+    lbl.textContent=(S.lang==='zh'?'处理中…':'Processing…');
+    setTimeout(function(){
+      var parsed=parseVoice(text.trim());
+      showConfirmModal(parsed);
+    },300);
+  } else {
+    if(lbl) lbl.textContent=t('v_tap');
   }
 }
 function _startSR(mic,lbl){
@@ -2446,7 +2497,7 @@ function _startSR(mic,lbl){
   window._activeSR=SR;
   SR.lang=S.lang==='zh'?'zh-CN':'en-CA';
   SR.interimResults=true;
-  SR.continuous=false;
+  SR.continuous=true;
   SR.maxAlternatives=3;
   mic.classList.add('on');_micRipples(true);lbl.textContent=t('v_listen');
   var _gotResult=false;
@@ -2476,24 +2527,46 @@ function _startSR(mic,lbl){
   };
   SR.onsoundend=function(){_d('soundEnd');};
   SR.onaudioend=function(){_d('audioEnd');};
+  var _silenceTimer=null;
   SR.onresult=function(ev){
     var interim='',final='';
     for(var i=ev.resultIndex;i<ev.results.length;i++){
       var txt=ev.results[i][0].transcript;
       if(ev.results[i].isFinal){final+=txt;}else{interim+=txt;}
     }
+    /* Reset silence timer on every speech event */
+    if(_silenceTimer){clearTimeout(_silenceTimer);_silenceTimer=null;}
     if(final){
-      _gotResult=true;_finalTranscript=final;
-      clearTimeout(_timer);
-      mic.classList.remove('on');_micRipples(false);
-      lbl.textContent=t('v_proc');
-      try{SR.stop();}catch(e){}
-      setTimeout(function(){
-        var parsed=parseVoice(_finalTranscript);
-        showConfirmModal(parsed);
-      },400);
+      _finalTranscript+=final;
+      /* Wait 1.5s of silence after final result before processing */
+      _silenceTimer=setTimeout(function(){
+        if(_gotResult)return;
+        _gotResult=true;
+        clearTimeout(_timer);
+        mic.classList.remove('on');_micRipples(false);
+        lbl.textContent=t('v_proc');
+        try{SR.stop();}catch(e){}
+        setTimeout(function(){
+          var parsed=parseVoice(_finalTranscript);
+          showConfirmModal(parsed);
+        },400);
+      },1500);
+      lbl.textContent='🎙️ '+_finalTranscript;
     } else if(interim){
-      lbl.textContent='🎙️ '+interim;
+      lbl.textContent='🎙️ '+(_finalTranscript||'')+interim;
+      /* Also set silence timer for interim results */
+      _silenceTimer=setTimeout(function(){
+        if(_gotResult||!_finalTranscript)return;
+        _gotResult=true;
+        clearTimeout(_timer);
+        mic.classList.remove('on');_micRipples(false);
+        lbl.textContent=t('v_proc');
+        try{SR.stop();}catch(e){}
+        setTimeout(function(){
+          var parsed=parseVoice(_finalTranscript);
+          showConfirmModal(parsed);
+        },400);
+      },1500);
     }
   };
   SR.onerror=function(ev){
@@ -2509,6 +2582,15 @@ function _startSR(mic,lbl){
       lbl.textContent=S.lang==='zh'?'🤫 没检测到语音，再试':'🤫 No speech, try again';
     } else if(errType==='network'){
       lbl.textContent=S.lang==='zh'?'⚠️ 网络错误(Google语音服务不可达)':'⚠️ Network err (Google speech unreachable)';
+    } else if(errType==='service-not-allowed'||errType==='language-not-supported'||errType==='aborted'){
+      /* Android browsers often throw these — offer manual input */
+      var isAndroid=/android/i.test(navigator.userAgent);
+      if(isAndroid){
+        showToast(S.lang==='zh'?'⚠️ 安卓浏览器语音不可用，请手动输入':'⚠️ Voice unavailable, use manual input');
+        setTimeout(function(){_showManualInput(lbl);},500);
+      } else {
+        lbl.textContent='⚠️ '+errType+(errMsg?(' '+errMsg):'');
+      }
     } else {
       lbl.textContent='⚠️ '+errType+(errMsg?(' '+errMsg):'');
     }
@@ -4472,8 +4554,8 @@ function updateTrialBanner(){
   var banner=$i('trial-banner');
   if(!banner)return;
   var days=getTrialDaysUsed();
-  var remain=60-days;
-  if(days>=50&&remain>=0){
+  var remain=45-days;
+  if(days>=35&&remain>=0){
     banner.classList.add('show');
     /* Add urgent pulsing for last 3 days */
     if(remain<=3){banner.classList.add('urgent');}else{banner.classList.remove('urgent');}
@@ -4532,8 +4614,8 @@ setInterval(function(){
     // Trial countdown reminder at 20:30 (day 50 ~ day 60)
     if(S.trialStart&&Notification.permission==='granted'&&trialRFired!==today){
       var daysUsed=getTrialDaysUsed();
-      var remain=60-daysUsed;
-      if(daysUsed>=50&&remain>=0){
+      var remain=45-daysUsed;
+      if(daysUsed>=35&&remain>=0){
         trialRFired=today;
         var tTitle=t('trial_notif_title');
         var tBody;
@@ -4578,9 +4660,62 @@ function showToast(msg){
         });
         return;
       }
-      _tryLocalBoot();
+      /* Token expired — try refresh before falling back to local */
+      if(_sbRefreshToken){
+        console.log('🔄 Access token expired, attempting refresh...');
+        sbRefreshSession().then(function(rr){
+          if(rr.data&&rr.data.access_token){
+            /* Refresh succeeded — retry getUser */
+            sbGetUser().then(function(res2){
+              if(res2.data&&res2.data.id){
+                var u2=res2.data;
+                var meta2=u2.user_metadata||{};
+                S.user={email:u2.email,name:meta2.display_name||u2.email.split('@')[0],sbId:u2.id};
+                S.userType='family';S.planSel='family';
+                _persist();
+                cloudFetch().then(function(){
+                  _flushOfflineQueue();syncProjects();
+                  setT('sb-user',S.user?S.user.email.split('@')[0]:'demo');
+                  applyApp();showScreen('app-screen');goMod('voice');
+                });
+                return;
+              }
+              _tryLocalBoot();
+            }).catch(function(){_tryLocalBoot();});
+          } else {
+            console.log('🔄 Refresh failed, clearing stale tokens');
+            try{localStorage.removeItem('jl_sbToken');localStorage.removeItem('jl_sbRefreshToken');}catch(e){}
+            _sbToken=null;_sbRefreshToken=null;
+            _tryLocalBoot();
+          }
+        }).catch(function(){_tryLocalBoot();});
+      } else {
+        _tryLocalBoot();
+      }
     }).catch(function(e){
-      _tryLocalBoot();
+      /* Network error — try refresh token */
+      if(_sbRefreshToken){
+        sbRefreshSession().then(function(rr){
+          if(rr.data&&rr.data.access_token){
+            sbGetUser().then(function(res2){
+              if(res2.data&&res2.data.id){
+                var u2=res2.data;
+                var meta2=u2.user_metadata||{};
+                S.user={email:u2.email,name:meta2.display_name||u2.email.split('@')[0],sbId:u2.id};
+                S.userType='family';S.planSel='family';_persist();
+                cloudFetch().then(function(){
+                  _flushOfflineQueue();syncProjects();
+                  setT('sb-user',S.user?S.user.email.split('@')[0]:'demo');
+                  applyApp();showScreen('app-screen');goMod('voice');
+                });return;
+              }
+              _tryLocalBoot();
+            }).catch(function(){_tryLocalBoot();});
+          } else {_tryLocalBoot();}
+        }).catch(function(){_tryLocalBoot();});
+      } else {
+        _tryLocalBoot();
+      }
     });
   } else {
     _tryLocalBoot();
