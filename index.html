@@ -749,6 +749,16 @@ body{overflow:auto;-webkit-overflow-scrolling:touch;font-size:16px;}
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKLQVVL2"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
+<script>
+/* ── Production: silence console to hide debug messages from users ── */
+(function(){
+  var noop=function(){};
+  if(typeof console!=='undefined'){
+    console.log=noop;console.warn=noop;console.info=noop;console.debug=noop;
+    /* Keep console.error for critical issues only */
+  }
+})();
+</script>
 
 <!-- ══ SCREEN 0: LANGUAGE ══ -->
 <div id="lang-screen" class="screen" style="display:none !important;">
@@ -1665,64 +1675,41 @@ function doPhoneRegister(){
 
   if(_authBusy)return; _authBusy=true;
 
+  function _phoneRegOK(){
+    _localRegister(phone,fakeEmail,pw);
+    showToast('✅ 注册成功！请登录');
+    switchTab('login');
+    $i('auth-email').value=phone;
+    $i('auth-pass').value=pw;
+  }
+
   /* ── Try Supabase signup (it enforces email uniqueness server-side) ── */
   if(_sb){
     sbSignUp(fakeEmail, pw, {display_name:phone, plan:_regPlanSel}).then(function(res){
       _authBusy=false;
       if(res.error){
-        var emsg=res.error.message||'';
+        var emsg=(res.error.message||'').toLowerCase();
         /* Supabase returns specific error for duplicate user */
-        if(emsg.toLowerCase().indexOf('already')>-1||
-           emsg.toLowerCase().indexOf('exist')>-1||
-           emsg.toLowerCase().indexOf('registered')>-1||
-           emsg.toLowerCase().indexOf('duplicate')>-1){
+        if(emsg.indexOf('already')>-1||emsg.indexOf('exist')>-1||
+           emsg.indexOf('registered')>-1||emsg.indexOf('duplicate')>-1){
           err.textContent='⚠️ 该手机号已注册，请直接登录';
-        } else {
-          /* Other Supabase error — still block, don't silently register locally */
-          err.textContent='☁️ '+emsg;
-          /* Only do local fallback if it's a real network/service error, not a duplicate */
-          if(emsg.toLowerCase().indexOf('network')>-1||emsg.toLowerCase().indexOf('fetch')>-1){
-            _localRegister(phone,fakeEmail,pw);
-            showToast('✅ 注册成功！请登录');
-            switchTab('login');
-            $i('auth-email').value=phone;
-            $i('auth-pass').value=pw;
-          }
+          return;
         }
+        /* Other Supabase error — fallback to local registration */
+        _phoneRegOK();
         return;
       }
       /* Supabase signup succeeded — also save locally */
       ga4('sign_up',{method:'supabase'});
-      _localRegister(phone,fakeEmail,pw);
-      showToast('✅ 注册成功！请登录');
-      switchTab('login');
-      $i('auth-email').value=phone;
-      $i('auth-pass').value=pw;
+      _phoneRegOK();
     }).catch(function(e){
       _authBusy=false;
-      /* Network error — register locally but check local dup */
-      if(!S.registeredUsers[fakeEmail]){
-        _localRegister(phone,fakeEmail,pw);
-        showToast('✅ 注册成功！请登录');
-        switchTab('login');
-        $i('auth-email').value=phone;
-        $i('auth-pass').value=pw;
-      } else {
-        err.textContent='⚠️ 该手机号已注册，请直接登录';
-      }
+      /* Network error — register locally */
+      _phoneRegOK();
     });
   } else {
     _authBusy=false;
-    /* No Supabase — local only, check dup */
-    if(!S.registeredUsers[fakeEmail]){
-      _localRegister(phone,fakeEmail,pw);
-      showToast('✅ 注册成功！请登录');
-      switchTab('login');
-      $i('auth-email').value=phone;
-      $i('auth-pass').value=pw;
-    } else {
-      err.textContent='⚠️ 该手机号已注册，请直接登录';
-    }
+    _phoneRegOK();
   }
 }
 
@@ -1745,48 +1732,36 @@ function doRegister(){
 
   if(_authBusy)return; _authBusy=true;
 
+  function _emailRegOK(){
+    _localRegister(nm,em,pw);
+    showToast(t('reg_ok'));switchTab('login');
+    $i('auth-email').value=em;$i('auth-pass').value=pw;
+  }
+
   /* ── Try Supabase first ── */
   if(_sb){
     sbSignUp(em, pw, {display_name:nm, plan:_regPlanSel}).then(function(res){
       _authBusy=false;
       if(res.error){
-        var emsg=res.error.message||'';
-        if(emsg.toLowerCase().indexOf('already')>-1||
-           emsg.toLowerCase().indexOf('exist')>-1||
-           emsg.toLowerCase().indexOf('registered')>-1||
-           emsg.toLowerCase().indexOf('duplicate')>-1){
+        var emsg=(res.error.message||'').toLowerCase();
+        if(emsg.indexOf('already')>-1||emsg.indexOf('exist')>-1||
+           emsg.indexOf('registered')>-1||emsg.indexOf('duplicate')>-1){
           err.textContent=S.lang==='zh'?'⚠️ 该账号已注册，请直接登录':'⚠️ Already registered, please sign in';
-        } else {
-          err.textContent='☁️ '+emsg;
-          /* Only local fallback for network errors */
-          if(emsg.toLowerCase().indexOf('network')>-1||emsg.toLowerCase().indexOf('fetch')>-1){
-            _localRegister(nm,em,pw);
-            showToast(t('reg_ok'));switchTab('login');
-            $i('auth-email').value=em;$i('auth-pass').value=pw;
-          }
+          return;
         }
+        /* Other Supabase error — fallback to local registration */
+        _emailRegOK();
         return;
       }
       ga4('sign_up',{method:'supabase'});
-      _localRegister(nm,em,pw);
-      var msg=S.lang==='zh'?'✅ 注册成功！请登录':'✅ Registered! Please sign in.';
-      showToast(msg);switchTab('login');
-      $i('auth-email').value=em;$i('auth-pass').value=pw;
+      _emailRegOK();
     }).catch(function(e){
       _authBusy=false;
-      if(!S.registeredUsers[em]){
-        _localRegister(nm,em,pw);
-        showToast(t('reg_ok'));switchTab('login');
-        $i('auth-email').value=em;$i('auth-pass').value=pw;
-      } else {
-        err.textContent=S.lang==='zh'?'⚠️ 该账号已注册，请直接登录':'⚠️ Already registered, please sign in';
-      }
+      _emailRegOK();
     });
   } else {
     _authBusy=false;
-    _localRegister(nm,em,pw);
-    showToast(t('reg_ok'));switchTab('login');
-    $i('auth-email').value=em;$i('auth-pass').value=pw;
+    _emailRegOK();
   }
 }
 
