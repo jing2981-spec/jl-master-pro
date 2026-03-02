@@ -2557,105 +2557,39 @@ function handleMic(){
    ═══════════════════════════════════════════════════════ */
 var _TC_ASR_URL='https://jl-asr-proxy.jing2981.workers.dev';
 window._tcRecording=false;
-window._tcMediaRecorder=null;
-window._tcAudioChunks=[];
 
 function _startTencentASR(mic,lbl){
   mic.classList.add('on');_micRipples(true);
   lbl.textContent=S.lang==='zh'?'🎤 正在录音…请说话':'🎤 Recording... speak now';
   window._tcRecording=true;
-  window._tcAudioChunks=[];
 
   navigator.mediaDevices.getUserMedia({audio:{
     sampleRate:16000,channelCount:1,echoCancellation:true,noiseSuppression:true
   }}).then(function(stream){
     window._tcStream=stream;
-    /* Use MediaRecorder to capture audio */
-    var options={mimeType:'audio/webm;codecs=opus'};
-    if(!MediaRecorder.isTypeSupported(options.mimeType)){
-      options={mimeType:'audio/webm'};
-      if(!MediaRecorder.isTypeSupported(options.mimeType)){
-        options={mimeType:'audio/mp4'};
-        if(!MediaRecorder.isTypeSupported(options.mimeType)){
-          options={};
-        }
-      }
-    }
-    var recorder=new MediaRecorder(stream,options);
-    window._tcMediaRecorder=recorder;
 
-    recorder.ondataavailable=function(e){
-      if(e.data&&e.data.size>0) window._tcAudioChunks.push(e.data);
+    /* Use Web Audio API to capture raw PCM data (WAV) — most compatible */
+    var audioCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+    var source=audioCtx.createMediaStreamSource(stream);
+    var processor=audioCtx.createScriptProcessor(4096,1,1);
+    var pcmChunks=[];
+
+    processor.onaudioprocess=function(e){
+      if(!window._tcRecording)return;
+      var data=e.inputBuffer.getChannelData(0);
+      pcmChunks.push(new Float32Array(data));
     };
+    source.connect(processor);
+    processor.connect(audioCtx.destination);
 
-    recorder.onstop=function(){
-      /* Stop stream tracks */
-      if(window._tcStream){
-        window._tcStream.getTracks().forEach(function(t){t.stop();});
-        window._tcStream=null;
-      }
-      mic.classList.remove('on');_micRipples(false);
+    window._tcAudioCtx=audioCtx;
+    window._tcProcessor=processor;
+    window._tcSource=source;
+    window._tcPcmChunks=pcmChunks;
 
-      if(window._tcAudioChunks.length===0){
-        lbl.textContent=S.lang==='zh'?'❌ 未录到声音':'❌ No audio captured';
-        return;
-      }
-
-      lbl.textContent=S.lang==='zh'?'⏳ 识别中…':'⏳ Recognizing...';
-
-      /* Convert to blob then base64 */
-      var blob=new Blob(window._tcAudioChunks,{type:recorder.mimeType||'audio/webm'});
-      var reader=new FileReader();
-      reader.onloadend=function(){
-        var base64=reader.result.split(',')[1];
-        /* Determine format from mime type */
-        var fmt='mp3';
-        var mime=recorder.mimeType||'';
-        if(mime.indexOf('webm')>-1) fmt='webm';
-        else if(mime.indexOf('mp4')>-1) fmt='m4a';
-        else if(mime.indexOf('ogg')>-1) fmt='ogg-opus';
-
-        /* Send to Tencent ASR via Cloudflare Worker */
-        fetch(_TC_ASR_URL,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({audio:base64,format:fmt})
-        }).then(function(res){return res.json();})
-        .then(function(data){
-          if(data.Response&&data.Response.Result){
-            var text=data.Response.Result;
-            lbl.textContent='🎙️ '+text;
-            setTimeout(function(){
-              var parsed=parseVoice(text);
-              showConfirmModal(parsed);
-            },400);
-          } else {
-            var errMsg=(data.Response&&data.Response.Error)?data.Response.Error.Message:'未知错误';
-            lbl.textContent=S.lang==='zh'?'❌ 识别失败：'+errMsg:'❌ Failed: '+errMsg;
-            /* Fallback to manual input */
-            setTimeout(function(){_showManualInput(lbl);},2000);
-          }
-        }).catch(function(err){
-          lbl.textContent=S.lang==='zh'?'❌ 网络错误，请手动输入':'❌ Network error';
-          setTimeout(function(){_showManualInput(lbl);},1500);
-        });
-      };
-      reader.readAsDataURL(blob);
-    };
-
-    recorder.onerror=function(e){
-      mic.classList.remove('on');_micRipples(false);
-      window._tcRecording=false;
-      lbl.textContent=S.lang==='zh'?'❌ 录音失败':'❌ Recording failed';
-      setTimeout(function(){_showManualInput(lbl);},1500);
-    };
-
-    /* Start recording */
-    recorder.start();
-
-    /* Auto-stop after 8 seconds (Tencent ASR max 60s, but short entries need ~5-8s) */
+    /* Auto-stop after 8 seconds */
     window._tcAutoStop=setTimeout(function(){
-      if(window._tcRecording) _tcStopRecord();
+      if(window._tcRecording) _tcStopAndRecognize(mic,lbl);
     },8000);
 
     /* Show countdown */
@@ -2678,12 +2612,116 @@ function _startTencentASR(mic,lbl){
 }
 
 function _tcStopRecord(){
+  if(window._tcRecording){
+    window._tcRecording=false;
+    if(window._tcAutoStop){clearTimeout(window._tcAutoStop);window._tcAutoStop=null;}
+    if(window._tcCountdown){clearInterval(window._tcCountdown);window._tcCountdown=null;}
+    /* Will be processed by _tcStopAndRecognize if called from handleMic tap */
+    var mic=$i('mic'),lbl=$i('mic-lbl');
+    if(mic&&lbl) _tcStopAndRecognize(mic,lbl);
+  }
+}
+
+function _tcStopAndRecognize(mic,lbl){
   window._tcRecording=false;
   if(window._tcAutoStop){clearTimeout(window._tcAutoStop);window._tcAutoStop=null;}
   if(window._tcCountdown){clearInterval(window._tcCountdown);window._tcCountdown=null;}
-  if(window._tcMediaRecorder&&window._tcMediaRecorder.state==='recording'){
-    window._tcMediaRecorder.stop();
+
+  /* Disconnect audio nodes */
+  try{if(window._tcProcessor)window._tcProcessor.disconnect();}catch(e){}
+  try{if(window._tcSource)window._tcSource.disconnect();}catch(e){}
+  try{if(window._tcAudioCtx)window._tcAudioCtx.close();}catch(e){}
+
+  /* Stop stream tracks */
+  if(window._tcStream){
+    window._tcStream.getTracks().forEach(function(t){t.stop();});
+    window._tcStream=null;
   }
+
+  mic.classList.remove('on');_micRipples(false);
+
+  var pcmChunks=window._tcPcmChunks||[];
+  if(pcmChunks.length===0){
+    lbl.textContent=S.lang==='zh'?'❌ 未录到声音':'❌ No audio captured';
+    return;
+  }
+
+  lbl.textContent=S.lang==='zh'?'⏳ 识别中…':'⏳ Recognizing...';
+
+  /* Merge PCM chunks into single Float32Array */
+  var totalLen=0;
+  for(var i=0;i<pcmChunks.length;i++) totalLen+=pcmChunks[i].length;
+  var merged=new Float32Array(totalLen);
+  var offset=0;
+  for(var i=0;i<pcmChunks.length;i++){
+    merged.set(pcmChunks[i],offset);
+    offset+=pcmChunks[i].length;
+  }
+
+  /* Convert Float32 PCM to 16-bit PCM WAV */
+  var wavBuffer=_encodeWAV(merged,16000);
+  var base64=_arrayBufferToBase64(wavBuffer);
+  alert('DEBUG: chunks='+pcmChunks.length+' samples='+totalLen+' wavBytes='+wavBuffer.byteLength+' b64len='+base64.length);
+
+  /* Send to Tencent ASR via Cloudflare Worker */
+  fetch(_TC_ASR_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({audio:base64,format:'wav'})
+  }).then(function(res){return res.json();})
+  .then(function(data){
+    alert('ASR Response: '+JSON.stringify(data).substring(0,300));
+    if(data.Response&&data.Response.Result){
+      var text=data.Response.Result;
+      lbl.textContent='🎙️ '+text;
+      setTimeout(function(){
+        var parsed=parseVoice(text);
+        showConfirmModal(parsed);
+      },400);
+    } else {
+      var errMsg=(data.Response&&data.Response.Error)?data.Response.Error.Message:'未知错误';
+      lbl.textContent=S.lang==='zh'?'❌ 识别失败：'+errMsg:'❌ Failed: '+errMsg;
+      setTimeout(function(){_showManualInput(lbl);},2000);
+    }
+  }).catch(function(err){
+    alert('ASR fetch error: '+err.message);
+    lbl.textContent=S.lang==='zh'?'❌ 网络错误，请手动输入':'❌ Network error';
+    setTimeout(function(){_showManualInput(lbl);},1500);
+  });
+}
+
+/* ── Encode raw PCM samples as WAV file ── */
+function _encodeWAV(samples,sampleRate){
+  var buffer=new ArrayBuffer(44+samples.length*2);
+  var view=new DataView(buffer);
+  function writeString(offset,str){
+    for(var i=0;i<str.length;i++) view.setUint8(offset+i,str.charCodeAt(i));
+  }
+  writeString(0,'RIFF');
+  view.setUint32(4,36+samples.length*2,true);
+  writeString(8,'WAVE');
+  writeString(12,'fmt ');
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true); /* PCM */
+  view.setUint16(22,1,true); /* mono */
+  view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*2,true);
+  view.setUint16(32,2,true);
+  view.setUint16(34,16,true);
+  writeString(36,'data');
+  view.setUint32(40,samples.length*2,true);
+  for(var i=0;i<samples.length;i++){
+    var s=Math.max(-1,Math.min(1,samples[i]));
+    view.setInt16(44+i*2,s<0?s*0x8000:s*0x7FFF,true);
+  }
+  return buffer;
+}
+
+function _arrayBufferToBase64(buffer){
+  var bytes=new Uint8Array(buffer);
+  var binary='';
+  for(var i=0;i<bytes.length;i++) binary+=String.fromCharCode(bytes[i]);
+  return btoa(binary);
 }
 /* ── Detect PWA standalone mode ── */
 function _isInStandaloneMode(){
