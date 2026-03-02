@@ -153,19 +153,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-NKLQVVL2');</script>
 <!-- End Google Tag Manager -->
 <!-- Crisp Live Chat -->
-<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="5d88fefb-820c-404d-84b8-3fd951d489ed";window.CRISP_RUNTIME_CONFIG={locale:"zh"};$crisp.push(["safe:true"]);$crisp.push(["do","chat:hide"]);$crisp.push(["on","chat:closed",function(){$crisp.push(["do","chat:hide"]);}]);(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="5d88fefb-820c-404d-84b8-3fd951d489ed";window.CRISP_RUNTIME_CONFIG={locale:"zh"};$crisp.push(["on","session:loaded",function(){$crisp.push(["do","chat:hide"]);}]);$crisp.push(["on","chat:closed",function(){$crisp.push(["do","chat:hide"]);}]);(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 <style>
-/* Hide ALL Crisp default UI elements — only triggered by our 联系客服 button */
-[class*="crisp"] [data-cshid]{display:none !important;}
-.crisp-client .cc-kv6t .cc-1xry{display:none !important;}
-.crisp-client .cc-kv6t .cc-unoo{display:none !important;}
-.crisp-client .cc-kv6t[data-full-view=true] .cc-1xry{display:none !important;}
-#crisp-chatbox>div>a{display:none !important;}
-#crisp-chatbox .cc-kv6t .cc-1xry .cc-ge4v{display:none !important;}
-/* Force hide the launcher bubble and side trigger */
-.crisp-client .cc-1brb6{display:none !important;}
-.crisp-client .cc-tlyz{display:none !important;}
-.crisp-client .cc-nsge{display:none !important;}
+/* Hide Crisp default launcher button */
+#crisp-chatbox{z-index:9998 !important;}
+#crisp-chatbox>div>a[data-cshid]{display:none !important;}
 </style>
 <script>
 window.dataLayer=window.dataLayer||[];
