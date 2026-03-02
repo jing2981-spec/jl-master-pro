@@ -2560,7 +2560,7 @@ window._tcRecording=false;
 
 function _startTencentASR(mic,lbl){
   mic.classList.add('on');_micRipples(true);
-  lbl.textContent=S.lang==='zh'?'🎤 正在录音…请说话':'🎤 Recording... speak now';
+  lbl.textContent=S.lang==='zh'?'🎤 请说话…':'🎤 Speak now...';
   window._tcRecording=true;
 
   navigator.mediaDevices.getUserMedia({audio:{
@@ -2573,11 +2573,32 @@ function _startTencentASR(mic,lbl){
     var source=audioCtx.createMediaStreamSource(stream);
     var processor=audioCtx.createScriptProcessor(4096,1,1);
     var pcmChunks=[];
+    var _hadSound=false;
+    var _silenceCount=0;
+    var _SILENCE_THRESH=0.01; /* amplitude threshold */
+    var _SILENCE_CHUNKS=5;   /* ~1.3s of silence after speech to auto-stop */
 
     processor.onaudioprocess=function(e){
       if(!window._tcRecording)return;
       var data=e.inputBuffer.getChannelData(0);
       pcmChunks.push(new Float32Array(data));
+
+      /* Detect sound level for auto-stop */
+      var maxAmp=0;
+      for(var i=0;i<data.length;i+=32){
+        var a=Math.abs(data[i]);
+        if(a>maxAmp) maxAmp=a;
+      }
+      if(maxAmp>_SILENCE_THRESH){
+        _hadSound=true;
+        _silenceCount=0;
+      } else if(_hadSound){
+        _silenceCount++;
+        if(_silenceCount>=_SILENCE_CHUNKS){
+          /* Speech ended — auto stop */
+          _tcStopAndRecognize(mic,lbl);
+        }
+      }
     };
     source.connect(processor);
     processor.connect(audioCtx.destination);
@@ -2587,13 +2608,13 @@ function _startTencentASR(mic,lbl){
     window._tcSource=source;
     window._tcPcmChunks=pcmChunks;
 
-    /* Auto-stop after 8 seconds */
+    /* Max recording time: 5 seconds */
     window._tcAutoStop=setTimeout(function(){
       if(window._tcRecording) _tcStopAndRecognize(mic,lbl);
-    },8000);
+    },5000);
 
     /* Show countdown */
-    var _sec=8;
+    var _sec=5;
     window._tcCountdown=setInterval(function(){
       _sec--;
       if(_sec>0&&window._tcRecording){
