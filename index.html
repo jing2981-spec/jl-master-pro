@@ -2670,7 +2670,7 @@ function _tcStopAndRecognize(mic,lbl){
     body:JSON.stringify({audio:base64,format:'wav'})
   }).then(function(res){return res.json();})
   .then(function(data){
-    alert('ASR Response: '+JSON.stringify(data).substring(0,300));
+    alert('ASR Response: '+JSON.stringify(data).substring(0,500));
     if(data.Response&&data.Response.Result){
       var text=data.Response.Result;
       lbl.textContent='🎙️ '+text;
