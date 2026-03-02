@@ -2518,41 +2518,171 @@ function handleMic(){
   /* ── Prevent double-tap: if already recording, stop it ── */
   if(mic.classList.contains('on')){
     if(window._activeSR){try{window._activeSR.stop();}catch(e){}}
+    if(window._tcRecording){_tcStopRecord();}
     mic.classList.remove('on');_micRipples(false);
     lbl.textContent=t('v_tap');
     return;
   }
-  /* ── Detect Android browser ── */
-  var isAndroid=/android/i.test(navigator.userAgent);
+  /* ── Detect capabilities ── */
   var hasSR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
-  /* ── Android WebView / some browsers lack SpeechRecognition ── */
-  if(!hasSR||(isAndroid&&_isInStandaloneMode())){
-    /* Fallback: show manual input dialog for unsupported browsers */
-    _showManualInput(lbl);
-    return;
-  }
-  /* ── Try real Web Speech API first ── */
-  if(hasSR){
-    /* Request mic permission explicitly before creating SR */
-    if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+  var isAndroid=/android/i.test(navigator.userAgent);
+  var isInChina=true; /* Assume China users — Google SR won't work */
+  var hasMediaDevices=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+
+  /* ── Strategy: try Web Speech API first on iOS Safari (non-China), otherwise use Tencent ASR ── */
+  if(hasSR&&!isAndroid&&!_isInStandaloneMode()){
+    /* iOS Safari or desktop Chrome — try Web Speech API */
+    if(hasMediaDevices){
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-        /* Permission granted — stop the stream, we just needed permission */
         stream.getTracks().forEach(function(t){t.stop();});
         _startSR(mic,lbl);
       }).catch(function(err){
-        /* Mic denied or unavailable */
-        mic.classList.remove('on');_micRipples(false);
-        var msg=S.lang==='zh'?'⚠️ 麦克风权限被拒绝，请在手机设置中开启':'⚠️ Mic permission denied. Enable in Settings.';
-        lbl.textContent=msg;
-        showToast(msg);
+        /* Mic denied — try Tencent ASR as fallback */
+        _startTencentASR(mic,lbl);
       });
     } else {
-      /* Older browser without getUserMedia — try SR directly */
       _startSR(mic,lbl);
     }
+  } else if(hasMediaDevices){
+    /* Android / PWA / no Web Speech API — use Tencent Cloud ASR */
+    _startTencentASR(mic,lbl);
   } else {
-    /* No WebSpeech API at all — prompt manual input */
+    /* No mic access at all — manual input */
     _showManualInput(lbl);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Tencent Cloud ASR — getUserMedia录音 + Worker代理
+   ═══════════════════════════════════════════════════════ */
+var _TC_ASR_URL='https://jl-asr-proxy.jing2981.workers.dev';
+window._tcRecording=false;
+window._tcMediaRecorder=null;
+window._tcAudioChunks=[];
+
+function _startTencentASR(mic,lbl){
+  mic.classList.add('on');_micRipples(true);
+  lbl.textContent=S.lang==='zh'?'🎤 正在录音…请说话':'🎤 Recording... speak now';
+  window._tcRecording=true;
+  window._tcAudioChunks=[];
+
+  navigator.mediaDevices.getUserMedia({audio:{
+    sampleRate:16000,channelCount:1,echoCancellation:true,noiseSuppression:true
+  }}).then(function(stream){
+    window._tcStream=stream;
+    /* Use MediaRecorder to capture audio */
+    var options={mimeType:'audio/webm;codecs=opus'};
+    if(!MediaRecorder.isTypeSupported(options.mimeType)){
+      options={mimeType:'audio/webm'};
+      if(!MediaRecorder.isTypeSupported(options.mimeType)){
+        options={mimeType:'audio/mp4'};
+        if(!MediaRecorder.isTypeSupported(options.mimeType)){
+          options={};
+        }
+      }
+    }
+    var recorder=new MediaRecorder(stream,options);
+    window._tcMediaRecorder=recorder;
+
+    recorder.ondataavailable=function(e){
+      if(e.data&&e.data.size>0) window._tcAudioChunks.push(e.data);
+    };
+
+    recorder.onstop=function(){
+      /* Stop stream tracks */
+      if(window._tcStream){
+        window._tcStream.getTracks().forEach(function(t){t.stop();});
+        window._tcStream=null;
+      }
+      mic.classList.remove('on');_micRipples(false);
+
+      if(window._tcAudioChunks.length===0){
+        lbl.textContent=S.lang==='zh'?'❌ 未录到声音':'❌ No audio captured';
+        return;
+      }
+
+      lbl.textContent=S.lang==='zh'?'⏳ 识别中…':'⏳ Recognizing...';
+
+      /* Convert to blob then base64 */
+      var blob=new Blob(window._tcAudioChunks,{type:recorder.mimeType||'audio/webm'});
+      var reader=new FileReader();
+      reader.onloadend=function(){
+        var base64=reader.result.split(',')[1];
+        /* Determine format from mime type */
+        var fmt='mp3';
+        var mime=recorder.mimeType||'';
+        if(mime.indexOf('webm')>-1) fmt='webm';
+        else if(mime.indexOf('mp4')>-1) fmt='m4a';
+        else if(mime.indexOf('ogg')>-1) fmt='ogg-opus';
+
+        /* Send to Tencent ASR via Cloudflare Worker */
+        fetch(_TC_ASR_URL,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({audio:base64,format:fmt})
+        }).then(function(res){return res.json();})
+        .then(function(data){
+          if(data.Response&&data.Response.Result){
+            var text=data.Response.Result;
+            lbl.textContent='🎙️ '+text;
+            setTimeout(function(){
+              var parsed=parseVoice(text);
+              showConfirmModal(parsed);
+            },400);
+          } else {
+            var errMsg=(data.Response&&data.Response.Error)?data.Response.Error.Message:'未知错误';
+            lbl.textContent=S.lang==='zh'?'❌ 识别失败：'+errMsg:'❌ Failed: '+errMsg;
+            /* Fallback to manual input */
+            setTimeout(function(){_showManualInput(lbl);},2000);
+          }
+        }).catch(function(err){
+          lbl.textContent=S.lang==='zh'?'❌ 网络错误，请手动输入':'❌ Network error';
+          setTimeout(function(){_showManualInput(lbl);},1500);
+        });
+      };
+      reader.readAsDataURL(blob);
+    };
+
+    recorder.onerror=function(e){
+      mic.classList.remove('on');_micRipples(false);
+      window._tcRecording=false;
+      lbl.textContent=S.lang==='zh'?'❌ 录音失败':'❌ Recording failed';
+      setTimeout(function(){_showManualInput(lbl);},1500);
+    };
+
+    /* Start recording */
+    recorder.start();
+
+    /* Auto-stop after 8 seconds (Tencent ASR max 60s, but short entries need ~5-8s) */
+    window._tcAutoStop=setTimeout(function(){
+      if(window._tcRecording) _tcStopRecord();
+    },8000);
+
+    /* Show countdown */
+    var _sec=8;
+    window._tcCountdown=setInterval(function(){
+      _sec--;
+      if(_sec>0&&window._tcRecording){
+        lbl.textContent=(S.lang==='zh'?'🎤 录音中…':'🎤 Recording... ')+_sec+'s';
+      } else {
+        clearInterval(window._tcCountdown);
+      }
+    },1000);
+
+  }).catch(function(err){
+    mic.classList.remove('on');_micRipples(false);
+    window._tcRecording=false;
+    var msg=S.lang==='zh'?'⚠️ 麦克风权限被拒绝，请在设置中开启':'⚠️ Mic permission denied';
+    lbl.textContent=msg;showToast(msg);
+  });
+}
+
+function _tcStopRecord(){
+  window._tcRecording=false;
+  if(window._tcAutoStop){clearTimeout(window._tcAutoStop);window._tcAutoStop=null;}
+  if(window._tcCountdown){clearInterval(window._tcCountdown);window._tcCountdown=null;}
+  if(window._tcMediaRecorder&&window._tcMediaRecorder.state==='recording'){
+    window._tcMediaRecorder.stop();
   }
 }
 /* ── Detect PWA standalone mode ── */
@@ -2667,13 +2797,15 @@ function _startSR(mic,lbl){
     } else if(errType==='no-speech'){
       lbl.textContent=S.lang==='zh'?'🤫 没检测到语音，再试':'🤫 No speech, try again';
     } else if(errType==='network'){
-      lbl.textContent=S.lang==='zh'?'⚠️ 网络错误(Google语音服务不可达)':'⚠️ Network err (Google speech unreachable)';
+      /* Google speech unreachable (China) — fallback to Tencent ASR */
+      lbl.textContent=S.lang==='zh'?'⚠️ 切换到云端识别…':'⚠️ Switching to cloud ASR...';
+      setTimeout(function(){_startTencentASR(mic,lbl);},500);
     } else if(errType==='service-not-allowed'||errType==='language-not-supported'||errType==='aborted'){
-      /* Browsers often throw these — offer manual input */
-      var snaMsg=S.lang==='zh'?'⚠️ 语音服务不可用，请手动输入':'⚠️ Voice unavailable, use manual input';
+      /* Browsers often throw these — try Tencent ASR */
+      var snaMsg=S.lang==='zh'?'⚠️ 切换到云端识别…':'⚠️ Switching to cloud ASR...';
       showToast(snaMsg);
       lbl.textContent=snaMsg;
-      setTimeout(function(){_showManualInput(lbl);},500);
+      setTimeout(function(){_startTencentASR(mic,lbl);},500);
     } else {
       var genMsg=S.lang==='zh'?'⚠️ 语音识别错误：'+errType:'⚠️ Speech error: '+errType;
       lbl.textContent=genMsg;
