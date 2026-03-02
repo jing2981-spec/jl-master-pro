@@ -2348,8 +2348,8 @@ function parseVoice(text){
     if(cnM){amount=cnToNum(cnM[1]);}
   }
 
-  if(amount<=0){// fallback random demo amount
-    amount=[45,68,92,185,23,120,280][Math.floor(Math.random()*7)]; /* Family version */
+  if(amount<=0){// no amount detected — leave as 0 for user to fill
+    amount=0;
   }
 
   /* ═══ LABOUR PRIORITY DETECTION ═══ */
@@ -2573,12 +2573,16 @@ function _startTencentASR(mic,lbl){
     var _hadSound=false;
     var _silenceCount=0;
     var _SILENCE_THRESH=0.015;
-    var _SILENCE_CHUNKS=3;   /* ~0.8s silence after speech → auto-stop */
+    var _SILENCE_CHUNKS=6;   /* ~1.5s silence after speech → auto-stop */
+    var _startTime=Date.now();
 
     processor.onaudioprocess=function(e){
       if(!window._tcRecording)return;
       var data=e.inputBuffer.getChannelData(0);
       pcmChunks.push(new Float32Array(data));
+
+      /* Skip silence detection for first 2 seconds — give user time to start */
+      if(Date.now()-_startTime<2000)return;
 
       var maxAmp=0;
       for(var i=0;i<data.length;i+=16){
@@ -2603,13 +2607,13 @@ function _startTencentASR(mic,lbl){
     window._tcSource=source;
     window._tcPcmChunks=pcmChunks;
 
-    /* Max recording: 5 seconds */
+    /* Max recording: 8 seconds */
     window._tcAutoStop=setTimeout(function(){
       if(window._tcRecording) _tcStopAndRecognize(mic,lbl);
-    },5000);
+    },8000);
 
     /* Countdown */
-    var _sec=5;
+    var _sec=8;
     window._tcCountdown=setInterval(function(){
       _sec--;
       if(_sec>0&&window._tcRecording){
