@@ -4437,12 +4437,22 @@ var _csMessages=[];  /* local cache of messages */
 var _csLoaded=false;
 
 function openCS(){
-  /* Open Crisp chat widget */
+  /* Try to open Crisp chat widget */
+  var crispOpened=false;
   if(window.$crisp){
     try{
-      $crisp.push(['do','chat:show']);
-      $crisp.push(['do','chat:open']);
+      /* Method 1: Direct API if Crisp is fully loaded */
+      if(typeof window.$crisp.push==='function'){
+        window.$crisp.push(['do','chat:show']);
+        window.$crisp.push(['do','chat:open']);
+        crispOpened=true;
+      }
     }catch(e){}
+  }
+  /* If Crisp didn't work, fall back to old CS overlay */
+  if(!crispOpened){
+    var ov=$i('cs-overlay');
+    if(ov){ov.classList.add('show');loadCSMessages();}
   }
 }
 function closeCS(e){
