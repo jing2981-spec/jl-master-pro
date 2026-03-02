@@ -2661,7 +2661,6 @@ function _tcStopAndRecognize(mic,lbl){
   /* Convert Float32 PCM to 16-bit PCM WAV */
   var wavBuffer=_encodeWAV(merged,16000);
   var base64=_arrayBufferToBase64(wavBuffer);
-  alert('DEBUG: chunks='+pcmChunks.length+' samples='+totalLen+' wavBytes='+wavBuffer.byteLength+' b64len='+base64.length);
 
   /* Send to Tencent ASR via Cloudflare Worker */
   fetch(_TC_ASR_URL,{
@@ -2670,7 +2669,6 @@ function _tcStopAndRecognize(mic,lbl){
     body:JSON.stringify({audio:base64,format:'wav'})
   }).then(function(res){return res.json();})
   .then(function(data){
-    alert('ASR Response: '+JSON.stringify(data).substring(0,500));
     if(data.Response&&data.Response.Result){
       var text=data.Response.Result;
       lbl.textContent='🎙️ '+text;
@@ -2684,7 +2682,6 @@ function _tcStopAndRecognize(mic,lbl){
       setTimeout(function(){_showManualInput(lbl);},2000);
     }
   }).catch(function(err){
-    alert('ASR fetch error: '+err.message);
     lbl.textContent=S.lang==='zh'?'❌ 网络错误，请手动输入':'❌ Network error';
     setTimeout(function(){_showManualInput(lbl);},1500);
   });
