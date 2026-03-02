@@ -152,25 +152,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NKLQVVL2');</script>
 <!-- End Google Tag Manager -->
-<!-- Crisp Live Chat (lazy load — won't block page) -->
-<script type="text/javascript">
-window.$crisp=[];window.CRISP_WEBSITE_ID="5d88fefb-820c-404d-84b8-3fd951d489ed";
-window._crispReady=false;
-window.$crisp.push(["on","session:loaded",function(){window._crispReady=true;}]);
-/* Delay Crisp loading to not block page render */
-(function(){
-  function loadCrisp(){
-    try{
-      var d=document,s=d.createElement("script");
-      s.src="https://client.crisp.chat/l.js";s.async=1;
-      s.onerror=function(){window._crispReady=false;};
-      d.getElementsByTagName("head")[0].appendChild(s);
-    }catch(e){}
-  }
-  if(document.readyState==='complete')loadCrisp();
-  else window.addEventListener('load',function(){setTimeout(loadCrisp,2000);});
-})();
-</script>
+<!-- Customer Service: built-in overlay only -->
 <script>
 window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
@@ -2558,8 +2540,24 @@ function handleMic(){
 var _TC_ASR_URL='https://jl-asr-proxy.jing2981.workers.dev';
 window._tcRecording=false;
 
+/* ── Beep sound for recording start/stop ── */
+function _playBeep(freq,duration){
+  try{
+    var ctx=new (window.AudioContext||window.webkitAudioContext)();
+    var osc=ctx.createOscillator();
+    var gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=freq||800;
+    gain.gain.value=0.3;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+(duration||0.15));
+    osc.stop(ctx.currentTime+(duration||0.15));
+  }catch(e){}
+}
+
 function _startTencentASR(mic,lbl){
   mic.classList.add('on');_micRipples(true);
+  _playBeep(880,0.12); /* start beep */
   lbl.textContent=S.lang==='zh'?'🎤 请说话…':'🎤 Speak now...';
   window._tcRecording=true;
 
@@ -2568,24 +2566,22 @@ function _startTencentASR(mic,lbl){
   }}).then(function(stream){
     window._tcStream=stream;
 
-    /* Use Web Audio API to capture raw PCM data (WAV) — most compatible */
     var audioCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
     var source=audioCtx.createMediaStreamSource(stream);
     var processor=audioCtx.createScriptProcessor(4096,1,1);
     var pcmChunks=[];
     var _hadSound=false;
     var _silenceCount=0;
-    var _SILENCE_THRESH=0.01; /* amplitude threshold */
-    var _SILENCE_CHUNKS=5;   /* ~1.3s of silence after speech to auto-stop */
+    var _SILENCE_THRESH=0.015;
+    var _SILENCE_CHUNKS=3;   /* ~0.8s silence after speech → auto-stop */
 
     processor.onaudioprocess=function(e){
       if(!window._tcRecording)return;
       var data=e.inputBuffer.getChannelData(0);
       pcmChunks.push(new Float32Array(data));
 
-      /* Detect sound level for auto-stop */
       var maxAmp=0;
-      for(var i=0;i<data.length;i+=32){
+      for(var i=0;i<data.length;i+=16){
         var a=Math.abs(data[i]);
         if(a>maxAmp) maxAmp=a;
       }
@@ -2595,7 +2591,6 @@ function _startTencentASR(mic,lbl){
       } else if(_hadSound){
         _silenceCount++;
         if(_silenceCount>=_SILENCE_CHUNKS){
-          /* Speech ended — auto stop */
           _tcStopAndRecognize(mic,lbl);
         }
       }
@@ -2608,12 +2603,12 @@ function _startTencentASR(mic,lbl){
     window._tcSource=source;
     window._tcPcmChunks=pcmChunks;
 
-    /* Max recording time: 5 seconds */
+    /* Max recording: 5 seconds */
     window._tcAutoStop=setTimeout(function(){
       if(window._tcRecording) _tcStopAndRecognize(mic,lbl);
     },5000);
 
-    /* Show countdown */
+    /* Countdown */
     var _sec=5;
     window._tcCountdown=setInterval(function(){
       _sec--;
@@ -2645,6 +2640,7 @@ function _tcStopRecord(){
 
 function _tcStopAndRecognize(mic,lbl){
   window._tcRecording=false;
+  _playBeep(600,0.1); /* end beep */
   if(window._tcAutoStop){clearTimeout(window._tcAutoStop);window._tcAutoStop=null;}
   if(window._tcCountdown){clearInterval(window._tcCountdown);window._tcCountdown=null;}
 
@@ -4637,14 +4633,7 @@ var _csMessages=[];  /* local cache of messages */
 var _csLoaded=false;
 
 function openCS(){
-  /* Try Crisp first */
-  try{
-    if(window._crispReady && window.$crisp && window.$crisp.push){
-      $crisp.push(['do','chat:open']);
-      return;
-    }
-  }catch(e){}
-  /* Fallback to built-in CS overlay */
+  /* Built-in CS overlay */
   var ov=$i('cs-overlay');if(!ov)return;
   setT('cs-title',t('cs_title'));
   var inp=$i('cs-input');if(inp)inp.placeholder=t('cs_input_ph');
