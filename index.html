@@ -2548,7 +2548,7 @@ function _playBeep(freq,duration){
     var gain=ctx.createGain();
     osc.connect(gain);gain.connect(ctx.destination);
     osc.frequency.value=freq||800;
-    gain.gain.value=0.3;
+    gain.gain.value=0.8;
     osc.start();
     gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+(duration||0.15));
     osc.stop(ctx.currentTime+(duration||0.15));
@@ -3150,7 +3150,15 @@ function initSwipe(){
       act.style.transform='translateX('+(136+nx)+'px)';
     },{passive:true});
     card.addEventListener('touchend',function(ev){
-      if(!moved)return;
+      if(!moved){
+        /* Tap (no swipe) — open edit */
+        if(!card.classList.contains('swiped')){
+          openEditEntry(eid);
+        } else {
+          closeSwipe(eid);
+        }
+        return;
+      }
       var dx=ev.changedTouches[0].clientX-startX;
       var cur=card.classList.contains('swiped');
       if(!cur&&dx<-50){openSwipe(eid);}
