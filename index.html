@@ -152,13 +152,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NKLQVVL2');</script>
 <!-- End Google Tag Manager -->
-<!-- Crisp Live Chat -->
-<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="5d88fefb-820c-404d-84b8-3fd951d489ed";window.CRISP_RUNTIME_CONFIG={locale:"zh"};$crisp.push(["on","session:loaded",function(){$crisp.push(["do","chat:hide"]);}]);$crisp.push(["on","chat:closed",function(){$crisp.push(["do","chat:hide"]);}]);(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
-<style>
-/* Hide Crisp default launcher button */
-#crisp-chatbox{z-index:9998 !important;}
-#crisp-chatbox>div>a[data-cshid]{display:none !important;}
-</style>
+<!-- Crisp Live Chat (lazy load — won't block page) -->
+<script type="text/javascript">
+window.$crisp=[];window.CRISP_WEBSITE_ID="5d88fefb-820c-404d-84b8-3fd951d489ed";
+window._crispReady=false;
+window.$crisp.push(["on","session:loaded",function(){window._crispReady=true;}]);
+/* Delay Crisp loading to not block page render */
+(function(){
+  function loadCrisp(){
+    try{
+      var d=document,s=d.createElement("script");
+      s.src="https://client.crisp.chat/l.js";s.async=1;
+      s.onerror=function(){window._crispReady=false;};
+      d.getElementsByTagName("head")[0].appendChild(s);
+    }catch(e){}
+  }
+  if(document.readyState==='complete')loadCrisp();
+  else window.addEventListener('load',function(){setTimeout(loadCrisp,2000);});
+})();
+</script>
 <script>
 window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
@@ -4437,23 +4449,22 @@ var _csMessages=[];  /* local cache of messages */
 var _csLoaded=false;
 
 function openCS(){
-  /* Try to open Crisp chat widget */
-  var crispOpened=false;
-  if(window.$crisp){
-    try{
-      /* Method 1: Direct API if Crisp is fully loaded */
-      if(typeof window.$crisp.push==='function'){
-        window.$crisp.push(['do','chat:show']);
-        window.$crisp.push(['do','chat:open']);
-        crispOpened=true;
-      }
-    }catch(e){}
-  }
-  /* If Crisp didn't work, fall back to old CS overlay */
-  if(!crispOpened){
-    var ov=$i('cs-overlay');
-    if(ov){ov.classList.add('show');loadCSMessages();}
-  }
+  /* Try Crisp first */
+  try{
+    if(window._crispReady && window.$crisp && window.$crisp.push){
+      $crisp.push(['do','chat:open']);
+      return;
+    }
+  }catch(e){}
+  /* Fallback to built-in CS overlay */
+  var ov=$i('cs-overlay');if(!ov)return;
+  setT('cs-title',t('cs_title'));
+  var inp=$i('cs-input');if(inp)inp.placeholder=t('cs_input_ph');
+  var btn=$i('cs-send-btn');if(btn)btn.textContent=t('cs_send');
+  var emp=$i('cs-empty-txt');if(emp)emp.innerHTML=t('cs_empty_msg');
+  ov.classList.add('show');
+  loadCSMessages();
+  setTimeout(function(){if(inp)inp.focus();},300);
 }
 function closeCS(e){
   if(e&&e.target&&e.target.id!=='cs-overlay')return;
