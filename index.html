@@ -152,6 +152,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NKLQVVL2');</script>
 <!-- End Google Tag Manager -->
+<!-- Crisp Live Chat -->
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="5d88fefb-820c-404d-84b8-3fd951d489ed";window.CRISP_RUNTIME_CONFIG={locale:"zh"};(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+<style>
+/* Hide default Crisp floating button — use our own 联系客服 button */
+.crisp-client .cc-kv6t .cc-1xry{display:none !important;}
+#crisp-chatbox .cc-kv6t[data-full-view=true] .cc-1xry{display:none !important;}
+</style>
 <script>
 window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
@@ -4430,26 +4437,10 @@ var _csMessages=[];  /* local cache of messages */
 var _csLoaded=false;
 
 function openCS(){
-  var ov=$i('cs-overlay');if(!ov)return;
-  /* i18n */
-  setT('cs-title',t('cs_title'));
-  var inp=$i('cs-input');if(inp)inp.placeholder=t('cs_input_ph');
-  var btn=$i('cs-send-btn');if(btn)btn.textContent=t('cs_send');
-  var emp=$i('cs-empty-txt');if(emp)emp.innerHTML=t('cs_empty_msg');
-  /* Trial bar */
-  var td=getTrialDaysUsed();
-  var trialBar=$i('cs-trial-bar');
-  if(trialBar&&td>=50){
-    var remain=60-td;
-    trialBar.style.display='block';
-    if(remain<=0) trialBar.textContent=t('trial_expired');
-    else if(remain===1) trialBar.textContent=t('trial_last_day');
-    else trialBar.textContent=t('trial_days_left').replace('{n}',remain)+' · '+t('cs_trial_sub');
-  } else if(trialBar){trialBar.style.display='none';}
-  ov.classList.add('show');
-  loadCSMessages();
-  /* Focus input */
-  setTimeout(function(){if(inp)inp.focus();},300);
+  /* Open Crisp chat widget */
+  if(window.$crisp){
+    try{$crisp.push(['do','chat:open']);}catch(e){}
+  }
 }
 function closeCS(e){
   if(e&&e.target&&e.target.id!=='cs-overlay')return;
