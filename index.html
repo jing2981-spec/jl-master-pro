@@ -494,7 +494,7 @@
     .chat-head .ch-t strong { font-family: var(--display); font-size: 15.5px; font-weight: 800; }
     .chat-head .ch-t span { font-size: 11.5px; color: #b9c1c8; display: inline-flex; align-items: center; gap: 6px; }
     .chat-head .ch-t span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
-    .chat-head .ch-close { margin-left: auto; background: rgba(255,255,255,0.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 20px; line-height: 1; }
+    .chat-head .ch-close { margin-left: 8px; background: rgba(255,255,255,0.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 20px; line-height: 1; }
     .chat-head .ch-close:hover { background: rgba(255,255,255,0.22); }
     .chat-body { flex: 1; overflow-y: auto; padding: 16px; background: var(--soft); display: flex; flex-direction: column; gap: 10px; }
     .msg { max-width: 84%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -516,6 +516,18 @@
     .chat-send { flex-shrink: 0; width: 44px; height: 44px; border: none; border-radius: 12px; background: var(--orange); color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
     .chat-send svg { width: 20px; height: 20px; fill: #fff; }
     .chat-send:disabled { opacity: 0.5; cursor: default; }
+    .chat-attach { flex-shrink: 0; width: 40px; height: 44px; border: none; background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+    .chat-attach svg { width: 22px; height: 22px; stroke: var(--muted); fill: none; stroke-width: 2; transition: stroke 150ms ease; }
+    .chat-attach:hover svg { stroke: var(--orange); }
+    .msg.photo { padding: 4px; max-width: 62%; }
+    .msg.photo img { width: 100%; border-radius: 10px; display: block; }
+    .msg.photo.uploading { position: relative; }
+    .msg.photo.uploading::after { content: ""; position: absolute; inset: 4px; border-radius: 10px; background: rgba(255,255,255,0.55); }
+    .msg.photo.failed { outline: 2px solid var(--orange-dark); }
+    .chat-head .ch-back { background: rgba(255,255,255,0.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-left: auto; }
+    .chat-head .ch-back:hover { background: rgba(255,255,255,0.22); }
+    .chat-head .ch-back svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; }
+    .chat-head .ch-back[hidden] { display: none; }
     @media (max-width: 620px) {
       .chat-panel { right: 0; bottom: 0; width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
       .chat-teaser { display: none; }
@@ -912,11 +924,14 @@
     <div class="chat-head">
       <img src="./assets/logo.png" alt="JL HomePro">
       <div class="ch-t"><strong>JL HomePro</strong><span id="chatStatusText">Online</span></div>
+      <button class="ch-back" id="chatBack" type="button" aria-label="Back to menu" title="返回选择 / Back" hidden><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="ch-close" id="chatClose" type="button" aria-label="Close">&times;</button>
     </div>
     <div class="chat-body" id="chatBody"></div>
     <div class="chat-quick" id="chatQuick"></div>
     <div class="chat-input">
+      <button class="chat-attach" id="chatAttach" type="button" aria-label="Add photo" title="上传照片 / Add photo"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49"/></svg></button>
+      <input id="chatPhotos" type="file" accept="image/*" multiple hidden>
       <textarea id="chatText" rows="1" aria-label="Message"></textarea>
       <button class="chat-send" id="chatSend" type="button" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>
     </div>
@@ -970,6 +985,7 @@
     /* ===== AI chat assistant ===== */
     var CHAT_ENDPOINT = "https://tglnvswsdbydxljqzmwr.supabase.co/functions/v1/gemini-chat";
     var LEAD_ENDPOINT = "https://dajpdagydzospojmtwdi.supabase.co/functions/v1/submit-lead";
+    var UPLOAD_ENDPOINT = "https://dajpdagydzospojmtwdi.supabase.co/functions/v1/upload-photo";
 
     var chatFab = document.getElementById('chatFab');
     var chatPanel = document.getElementById('chatPanel');
@@ -980,12 +996,16 @@
     var chatSend = document.getElementById('chatSend');
     var chatTeaser = document.getElementById('chatTeaser');
     var chatStatusText = document.getElementById('chatStatusText');
+    var chatBack = document.getElementById('chatBack');
+    var chatAttach = document.getElementById('chatAttach');
+    var chatPhotos = document.getElementById('chatPhotos');
 
     var chatHistory = [];        // {role, content} sent to the model
     var conversationStarted = false;
     var chatSending = false;
     var chatAutoOpened = false;
     var lastLeadKey = '';
+    var pendingPhotos = [];      // public URLs of photos uploaded this session
 
     var T = {
       greeting: {
@@ -1013,7 +1033,7 @@
       "- Contact: WhatsApp / phone +1 (647) 979-9301, email info@jlhomeservice.ca. Serves the whole GTA.",
       "",
       "HOW OUR QUOTE WORKS - guide every repair/renovation visitor through these 3 steps, conversationally:",
-      "Step 1 - Photos & description: understand exactly what they need. Ask what the issue is and which room/area, and encourage them to send photos or a short video on WhatsApp (+1 647-979-9301) because it makes the quote far more accurate.",
+      "Step 1 - Photos & description: understand exactly what they need. Ask what the issue is and which room/area, and encourage them to upload photos RIGHT HERE in the chat (tap the paperclip / attach button next to the message box) - they can also use WhatsApp (+1 647-979-9301). Photos make the quote far more accurate. If the visitor tells you they have uploaded photos here, thank them and factor them in.",
       "Step 2 - Clear written scope: clarify scope - is it a small fix or a fuller renovation, any material preferences, rough size/quantity, priorities and desired timing.",
       "Step 3 - Practical fixed price: explain that our team will turn all of that into a clear written scope and a practical fixed price with no surprises. You do NOT invent prices - the team follows up.",
       "",
@@ -1029,7 +1049,7 @@
       "   \u2022 \u671f\u671b\u65f6\u95f4/Timing: ...",
       "   Ask them to confirm or correct it, and to leave the best contact (phone / WeChat / email) so the team can follow up with a written scope and price.",
       "5) ALSO gently offer the platform as a helpful extra (not a brush-off): they can post this same request for FREE on jlhomeservice.ca, where hundreds of certified GTA tradespeople will see it, so they may get an even better-matched pro, service and price.",
-      "6) Close the loop: once you have their contact, confirm the next step - e.g. send photos to our WhatsApp for the fastest, most accurate quote, and let them know the team will reach out.",
+      "6) Close the loop: once you have their contact, confirm the next step - e.g. they can attach photos right here in the chat (or WhatsApp) for the fastest, most accurate quote, and let them know the team will reach out.",
       "",
       "STYLE:",
       "- ALWAYS reply in the SAME language the user writes in. Default to Simplified Chinese if unsure.",
@@ -1119,8 +1139,9 @@
           email: isEmail ? contact : '',
           city: (lead.location || '').trim(),
           project_type: 'AI chat - ' + (lead.category || 'inquiry'),
-          message: '[AI 聊天] ' + (lead.need || '') + (lead.location ? ('\n位置: ' + lead.location) : '') + '\n联系: ' + contact,
-          photo_urls: [],
+          message: '[AI 聊天] ' + (lead.need || '') + (lead.location ? ('\n位置: ' + lead.location) : '') + '\n联系: ' + contact
+                   + (pendingPhotos.length ? ('\n照片: ' + pendingPhotos.length + ' 张') : ''),
+          photo_urls: pendingPhotos.slice(),
           lang: document.documentElement.lang
         })
       }).catch(function(){});
@@ -1140,16 +1161,31 @@
       return data.message;
     }
 
-    async function sendMessage(text){
+    function ensureStarted(){
+      if (conversationStarted) return;
+      conversationStarted = true;
+      chatQuick.innerHTML = '';
+      chatBack.hidden = false;                 // show "back to menu"
+      chatHistory.push({ role: 'user', content: SYSTEM_PROMPT });
+      chatHistory.push({ role: 'model', content: T.greeting[isZh() ? 'zh' : 'en'] });
+    }
+
+    function resetChat(){                        // back button → return to the starter
+      conversationStarted = false;
+      chatHistory = [];
+      pendingPhotos = [];
+      lastLeadKey = '';
+      chatSending = false; chatSend.disabled = false;
+      chatBack.hidden = true;
+      renderStarter();
+    }
+
+    async function sendMessage(text, opts){
+      opts = opts || {};
       text = (text || '').trim();
       if (!text || chatSending) return;
-      if (!conversationStarted) {
-        conversationStarted = true;
-        chatQuick.innerHTML = '';
-        chatHistory.push({ role: 'user', content: SYSTEM_PROMPT });
-        chatHistory.push({ role: 'model', content: T.greeting[isZh() ? 'zh' : 'en'] });
-      }
-      addMsg('user', text);
+      ensureStarted();
+      if (!opts.hidden) addMsg('user', text);
       chatHistory.push({ role: 'user', content: text });
       chatText.value = ''; chatText.style.height = 'auto';
       chatSending = true; chatSend.disabled = true;
@@ -1171,6 +1207,70 @@
       }
     }
 
+    /* ----- in-chat photo upload ----- */
+    function compressImage(file){
+      return new Promise(function(resolve){
+        var img = new Image();
+        img.onload = function(){
+          var max = 1400, w = img.naturalWidth, h = img.naturalHeight;
+          if (w > max || h > max) {
+            if (w >= h) { h = Math.round(h * max / w); w = max; }
+            else { w = Math.round(w * max / h); h = max; }
+          }
+          try {
+            var c = document.createElement('canvas'); c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, 0, 0, w, h);   // re-encode drops EXIF/GPS
+            c.toBlob(function(b){ resolve(b || file); }, 'image/jpeg', 0.82);
+          } catch (e) { resolve(file); }
+          URL.revokeObjectURL(img.src);
+        };
+        img.onerror = function(){ resolve(file); };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+    function blobToBase64(b){
+      return new Promise(function(res, rej){
+        var r = new FileReader();
+        r.onload = function(){ res(String(r.result).split(',')[1]); };
+        r.onerror = rej;
+        r.readAsDataURL(b);
+      });
+    }
+    function addPhotoMsg(localUrl){
+      var el = document.createElement('div');
+      el.className = 'msg user photo uploading';
+      var im = document.createElement('img'); im.src = localUrl; el.appendChild(im);
+      chatBody.appendChild(el); scrollChat();
+      return el;
+    }
+    async function handleFiles(fileList){
+      var files = Array.prototype.slice.call(fileList).filter(function(f){ return /^image\//.test(f.type); }).slice(0, 6);
+      if (!files.length) return;
+      ensureStarted();
+      var added = 0;
+      for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        var bubble = addPhotoMsg(URL.createObjectURL(f));
+        try {
+          var blob = await compressImage(f);
+          var b64 = await blobToBase64(blob);
+          var res = await fetch(UPLOAD_ENDPOINT, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: f.name, type: 'image/jpeg', data: b64 })
+          });
+          var d = await res.json();
+          if (d && d.success && d.url) { pendingPhotos.push(d.url); bubble.classList.remove('uploading'); added++; }
+          else { bubble.classList.remove('uploading'); bubble.classList.add('failed'); }
+        } catch (e) { bubble.classList.remove('uploading'); bubble.classList.add('failed'); }
+      }
+      if (added) {
+        var note = isZh()
+          ? '（我在聊天里上传了 ' + added + ' 张现场照片，请结合照片继续。）'
+          : '(I uploaded ' + added + ' site photo(s) here in the chat — please take them into account.)';
+        sendMessage(note, { hidden: true });   // let the assistant acknowledge & continue
+      }
+    }
+
     function openChat(){
       chatTeaser.classList.add('hide');
       chatPanel.classList.add('open');
@@ -1185,6 +1285,9 @@
 
     chatFab.addEventListener('click', openChat);
     chatClose.addEventListener('click', closeChat);
+    chatBack.addEventListener('click', resetChat);
+    chatAttach.addEventListener('click', function(){ chatPhotos.click(); });
+    chatPhotos.addEventListener('change', function(){ handleFiles(chatPhotos.files); chatPhotos.value = ''; });
     chatTeaser.addEventListener('click', openChat);
     chatTeaser.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChat(); } });
     chatSend.addEventListener('click', function(){ sendMessage(chatText.value); });
