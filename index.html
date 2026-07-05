@@ -473,6 +473,53 @@
       .fab span { display: none; }
       .fab { padding: 15px; }
     }
+
+    /* ---------- AI chat assistant ---------- */
+    .fab { bottom: 92px; padding: 14px; gap: 0; }
+    .fab span { display: none; }
+    .fab svg { width: 24px; height: 24px; }
+    .chat-fab { position: fixed; z-index: 61; right: 20px; bottom: 20px; display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; border: none; border-radius: 50%; background: var(--orange); color: #fff; cursor: pointer; box-shadow: 0 14px 30px rgba(238,106,31,0.42); transition: transform 160ms ease; }
+    .chat-fab:hover { transform: translateY(-3px) scale(1.03); }
+    .chat-fab svg { width: 28px; height: 28px; stroke: #fff; fill: none; stroke-width: 2; }
+    .chat-fab .chat-badge { position: absolute; top: -2px; right: -2px; width: 15px; height: 15px; border-radius: 50%; background: #22c55e; border: 2px solid #fff; }
+    .chat-teaser { position: fixed; z-index: 61; right: 92px; bottom: 30px; max-width: 232px; padding: 11px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px 14px 4px 14px; box-shadow: var(--shadow); font-size: 13.5px; font-weight: 600; color: var(--ink); cursor: pointer; animation: teaserIn 400ms ease; }
+    @keyframes teaserIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .chat-teaser.hide { display: none; }
+
+    .chat-panel { position: fixed; z-index: 62; right: 20px; bottom: 20px; display: flex; flex-direction: column; width: min(390px, calc(100vw - 32px)); height: min(600px, calc(100vh - 40px)); background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 30px 70px rgba(33,40,46,0.28); overflow: hidden; opacity: 0; transform: translateY(16px) scale(0.98); pointer-events: none; transition: opacity 200ms ease, transform 200ms ease; }
+    .chat-panel.open { opacity: 1; transform: none; pointer-events: auto; }
+    .chat-head { display: flex; align-items: center; gap: 11px; padding: 14px 16px; background: var(--ink); color: #fff; }
+    .chat-head img { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; }
+    .chat-head .ch-t { display: grid; line-height: 1.2; }
+    .chat-head .ch-t strong { font-family: var(--display); font-size: 15.5px; font-weight: 800; }
+    .chat-head .ch-t span { font-size: 11.5px; color: #b9c1c8; display: inline-flex; align-items: center; gap: 6px; }
+    .chat-head .ch-t span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+    .chat-head .ch-close { margin-left: auto; background: rgba(255,255,255,0.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 20px; line-height: 1; }
+    .chat-head .ch-close:hover { background: rgba(255,255,255,0.22); }
+    .chat-body { flex: 1; overflow-y: auto; padding: 16px; background: var(--soft); display: flex; flex-direction: column; gap: 10px; }
+    .msg { max-width: 84%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .msg.bot { align-self: flex-start; background: var(--paper); border: 1px solid var(--line); border-bottom-left-radius: 4px; color: var(--ink); }
+    .msg.user { align-self: flex-end; background: var(--orange); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.bot a { color: var(--orange-dark); font-weight: 700; text-decoration: underline; }
+    .chat-quick { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; background: var(--soft); }
+    .chat-quick:empty { display: none; }
+    .chat-quick button { padding: 9px 13px; border: 1px solid var(--orange); border-radius: 999px; background: var(--paper); color: var(--orange-dark); font-size: 13px; font-weight: 700; cursor: pointer; transition: background 150ms ease; }
+    .chat-quick button:hover { background: var(--orange-soft); }
+    .chat-typing { align-self: flex-start; display: inline-flex; gap: 4px; padding: 13px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
+    .chat-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+    .chat-typing i:nth-child(2) { animation-delay: 0.2s; }
+    .chat-typing i:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,60%,100% { opacity: 0.3; } 30% { opacity: 1; } }
+    .chat-input { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); background: var(--paper); }
+    .chat-input textarea { flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; font-size: 14px; max-height: 110px; min-height: 44px; resize: none; background: #fbfbfc; line-height: 1.4; }
+    .chat-input textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(238,106,31,0.12); outline: none; }
+    .chat-send { flex-shrink: 0; width: 44px; height: 44px; border: none; border-radius: 12px; background: var(--orange); color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .chat-send svg { width: 20px; height: 20px; fill: #fff; }
+    .chat-send:disabled { opacity: 0.5; cursor: default; }
+    @media (max-width: 620px) {
+      .chat-panel { right: 0; bottom: 0; width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
+      .chat-teaser { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -491,7 +538,6 @@
         <a href="#why" data-zh><span class="en">Why Us</span><span class="zh">为什么选我们</span></a>
 
         <a href="#process" data-zh><span class="en">Process</span><span class="zh">流程</span></a>
-        <a href="#faq" data-zh><span class="en">FAQ</span><span class="zh">常见问题</span></a>
         <a href="#area" data-zh><span class="en">Service Area</span><span class="zh">服务区域</span></a>
       </div>
       <div class="nav-right">
@@ -499,7 +545,7 @@
           <button id="enBtn" class="active" type="button">EN</button>
           <button id="zhBtn" type="button">中文</button>
         </div>
-        <a class="btn primary" href="#contact" data-zh><span class="en">Free Quote</span><span class="zh">免费报价</span></a>
+        <a class="btn primary" href="#" data-open-chat data-zh><span class="en">Chat with us</span><span class="zh">在线咨询</span></a>
       </div>
     </nav>
   </header>
@@ -518,7 +564,7 @@
           <span class="zh">从卫生间、地下室到厨房、维修和售前焕新,JL HomePro Solution 帮助大多伦多业主理清装修范围、选用实用材料,把活做干净——并提供清晰的书面报价。</span>
         </p>
         <div class="hero-actions reveal" style="--d:260ms">
-          <a class="btn primary" href="#contact" data-zh><span class="en">Get a Practical Quote</span><span class="zh">获取实在报价</span></a>
+          <a class="btn primary" href="#" data-open-chat data-zh><span class="en">Chat with us</span><span class="zh">在线咨询</span></a>
           <a class="btn wa" href="https://wa.me/16479799301" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.821 9.821 0 001.51 5.26l-.999 3.648 3.488-.915zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
             <span data-zh><span class="en">Send Photos on WhatsApp</span><span class="zh">发照片到 WhatsApp</span></span>
@@ -597,7 +643,7 @@
             <p data-zh><span class="en">Small repairs to full renovations across the GTA — kitchens, bathrooms, basements, decks and whole-home work, with a clear written scope and price.</span><span class="zh">大多地区小修小补到整屋翻新都接:厨房、卫生间、地下室、露台与全屋翻新,开工前给出清楚的书面范围与报价。</span></p>
             <div class="biz-foot">
               <a class="biz-link" href="#services" data-zh><span class="en">View services</span><span class="zh">查看服务项目</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-              <a class="biz-link" href="#contact" data-zh><span class="en">Free quote</span><span class="zh">免费报价</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+              <a class="biz-link" href="#" data-open-chat data-zh><span class="en">Ask about a job</span><span class="zh">在线咨询</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
             </div>
           </article>
 
@@ -624,18 +670,19 @@
               <h3 data-zh><span class="en">JL Master Pro</span><span class="zh">记账大师 · 装修人的 AI 记账神器</span></h3>
             </div>
             <div class="ms-body" data-zh>
-              <div class="en ms-en">JL Master Pro — AI bookkeeping for contractors. Just tap and speak: "received $3000 from Dunn St" and it's logged. Track job-site contracts, costs, HST and profit margin — all by voice. Built for the trades. Bilingual.</div>
+              <div class="en ms-en">JL Master Pro — voice bookkeeping for contractors. Tap and speak: "paid 565 for drywall" or "received $3000 from Dunn St" and the entry is logged for review. Track job-site contracts, costs, payments, HST amounts, and profit margin in one place. Built for the trades. Bilingual.</div>
               <div class="zh ms-zh">
                 <p class="ms-lead">还在用记事本、Excel 记工地账?记账大师让你开口说话就能记账:</p>
                 <ul class="biz-features">
-                  <li>🎤 <strong>AI 语音记账</strong>:说一句就入账,自动识别收入/支出,免打字</li>
+                  <li>🎤 <strong>AI 语音记账</strong>:说一句就入账,识别快、可修改,免打字</li>
                   <li>🏗 <strong>工地管理</strong>:每个工地的合同额、已用成本、已收款、尾款、毛利率全都算好</li>
-                  <li>🧾 <strong>小票扫描</strong>:拍照自动按日期归档</li>
-                  <li>💰 <strong>HST 自动拆分</strong>:报税清清爽爽</li>
+                  <li>👷 <strong>记工餐补</strong>:工资、餐补、按天结,一句话记到对应工地</li>
+                  <li>🧾 <strong>小票扫描</strong>:拍照按日期归档,后面核对更方便</li>
+                  <li>💰 <strong>HST 金额分开看</strong>:账目整理更清楚</li>
                   <li>🌐 <strong>中英双语</strong>,承包商 / 家庭两种模式</li>
                   <li>☁️ <strong>云端同步</strong>,换手机数据不丢</li>
                 </ul>
-                <p class="ms-close">专为大多伦多装修行业打造。工地的钱,说一句就管好。</p>
+                <p class="ms-close">专为大多伦多装修行业打造。灰板、记工、餐补、工程款这些装修话,说一句就能记进账里。</p>
               </div>
             </div>
             <div class="biz-qr">
@@ -803,73 +850,6 @@
       </div>
     </section>
 
-    <!-- FAQ -->
-    <section class="section" id="faq">
-      <div class="wrap">
-        <div class="section-head reveal" style="justify-content:center;text-align:center;display:block;margin-bottom:36px;">
-          <span class="kicker">FAQ</span>
-          <h2 data-zh><span class="en">Common questions, straight answers.</span><span class="zh">常见问题,直接解答。</span></h2>
-        </div>
-        <div class="faq-list reveal">
-          <div class="faq-item">
-            <button class="faq-q" data-zh>
-              <span class="en">Do you take small jobs — like replacing a toilet or patching a wall?</span>
-              <span class="zh">你们接小活吗？比如换马桶、补墙洞这种？</span>
-              <span class="arrow"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-            </button>
-            <div class="faq-a"><div class="faq-a-inner" data-zh>
-              <span class="en">Yes — small jobs are welcome. Toilet replacement, vanity or sink installation, pot lights, wall patching and other handyman work are all things we handle. Just send us a photo of the issue and we'll let you know the next step.</span>
-              <span class="zh">当然接！换马桶、装洗手盆或浴室柜、加筒灯、补墙洞这类活我们都做。拍张照片发给我们,我们告诉你下一步。</span>
-            </div></div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" data-zh>
-              <span class="en">Can I communicate in Chinese?</span>
-              <span class="zh">可以用中文沟通吗？</span>
-              <span class="arrow"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-            </button>
-            <div class="faq-a"><div class="faq-a-inner" data-zh>
-              <span class="en">Yes. Our team speaks Mandarin and you can reach us in Chinese via WhatsApp, phone or the contact form on this page.</span>
-              <span class="zh">可以。我们团队说普通话,可以用中文通过 WhatsApp、电话或本页表单联系我们。</span>
-            </div></div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" data-zh>
-              <span class="en">Is the on-site quote free?</span>
-              <span class="zh">上门报价收费吗？</span>
-              <span class="arrow"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-            </button>
-            <div class="faq-a"><div class="faq-a-inner" data-zh>
-              <span class="en">On-site quotes for renovation projects are free. For small jobs, we can often give a rough estimate from photos before any visit is needed.</span>
-              <span class="zh">装修项目上门报价免费。小活的话,通常发照片就能先给初步判断,不一定需要上门。</span>
-            </div></div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" data-zh>
-              <span class="en">Who supplies the materials?</span>
-              <span class="zh">材料由谁负责采购？</span>
-              <span class="arrow"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-            </button>
-            <div class="faq-a"><div class="faq-a-inner" data-zh>
-              <span class="en">It depends on the project. We can source materials, or you can purchase them directly — we'll discuss what works best and confirm everything in writing before starting.</span>
-              <span class="zh">视项目而定,可以由我们采购,也可以你们自购。开工前我们会一起确认,并以书面形式列清楚。</span>
-            </div></div>
-          </div>
-          <div class="faq-item">
-            <button class="faq-q" data-zh>
-              <span class="en">How quickly can you start?</span>
-              <span class="zh">多快能安排上门？</span>
-              <span class="arrow"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-            </button>
-            <div class="faq-a"><div class="faq-a-inner" data-zh>
-              <span class="en">For small jobs we can often book within a few days. Larger renovations depend on scope and scheduling. Send us the details and we'll give you a realistic timeline.</span>
-              <span class="zh">小活通常几天内就能安排上门。大装修视工程规模而定。把需求发给我们,我们给你一个实际的时间安排。</span>
-            </div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- SERVICE AREA -->
     <section class="section alt" id="area">
       <div class="wrap">
@@ -915,146 +895,32 @@
       </div>
     </section>
 
-    <!-- CONTACT -->
-    <section class="section alt" id="contact">
-      <div class="wrap contact">
-        <aside class="contact-panel reveal">
-          <span class="kicker">Contact</span>
-          <h2 data-zh><span class="en">Tell us what needs fixing, replacing or renovating.</span><span class="zh">告诉我们哪里要修、要换、要装修。</span></h2>
-          <p data-zh><span class="en">Small jobs are welcome. Send photos by form or WhatsApp, and we will reply with the next step or arrange an on-site visit.</span><span class="zh">小活也欢迎。可以表单上传照片,也可以 WhatsApp 发照片,我们会回复下一步或安排上门。</span></p>
-          <div class="contact-list">
-            <div class="crow">
-              <span class="ci"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg></span>
-              <div class="ct"><span data-zh><span class="en">Phone</span><span class="zh">电话</span></span><strong><a href="tel:+16479799301">+1 (647) 979-9301</a></strong></div>
-            </div>
-            <div class="crow">
-              <span class="ci"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></span>
-              <div class="ct"><span>WhatsApp</span><strong><a href="https://wa.me/16479799301" target="_blank" rel="noopener">+1 (647) 979-9301</a></strong></div>
-            </div>
-            <div class="crow">
-              <span class="ci"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M22 6l-10 7L2 6"/></svg></span>
-              <div class="ct"><span data-zh><span class="en">Email</span><span class="zh">邮箱</span></span><strong><a href="mailto:info@jlhomeservice.ca">info@jlhomeservice.ca</a></strong></div>
-            </div>
-            <div class="crow">
-              <span class="ci"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-              <div class="ct"><span data-zh><span class="en">Service Area</span><span class="zh">服务区域</span></span><strong data-zh><span class="en">Greater Toronto Area</span><span class="zh">大多伦多地区</span></strong></div>
-            </div>
-          </div>
-          <div class="socials">
-            <a href="https://www.facebook.com/JLhomeservice" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z"/></svg></a>
-            <a href="https://www.instagram.com/jing2981" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zM12 0C8.74 0 8.33.01 7.05.07 2.7.27.27 2.69.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.2 4.36 2.62 6.78 6.98 6.98C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c4.35-.2 6.78-2.62 6.98-6.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.2-4.35-2.62-6.78-6.98-6.98C15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 100 12.32A6.16 6.16 0 0012 5.84zM12 16a4 4 0 110-8 4 4 0 010 8zm6.41-10.85a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/></svg></a>
-          </div>
-          <div class="qr-card">
-            <img src="./assets/whatsapp-qr.jpg" alt="JL HomePro Solution WhatsApp QR code">
-          </div>
-          <div class="qr-cap" data-zh><span class="en">On a computer? Scan the QR code to add us on WhatsApp.</span><span class="zh">用电脑访问?扫描二维码添加我们的 WhatsApp。</span></div>
-        </aside>
-
-        <form class="quote-form reveal" id="quoteForm">
-          <h3 data-zh><span class="en">Request a Free Quote</span><span class="zh">免费报价申请</span></h3>
-          <p data-zh><span class="en">Tell us the job, attach a few photos, and we will reply with advice, pricing or a site-visit time.</span><span class="zh">写下要做的活,附上几张照片,我们会回复建议、报价或上门时间。</span></p>
-
-          <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off">
-
-          <div class="grid2">
-            <div class="field">
-              <label for="name" data-zh><span class="en">Name <span class="req">*</span></span><span class="zh">姓名 <span class="req">*</span></span></label>
-              <input id="name" name="name" required autocomplete="name" data-ph-en="Your name" data-ph-zh="您的姓名">
-            </div>
-            <div class="field">
-              <label for="phone" data-zh><span class="en">Phone <span class="req">*</span></span><span class="zh">电话 <span class="req">*</span></span></label>
-              <input id="phone" name="phone" required autocomplete="tel" data-ph-en="Best number to reach you" data-ph-zh="方便联系的电话">
-            </div>
-            <div class="field">
-              <label for="email" data-zh><span class="en">Email</span><span class="zh">邮箱</span></label>
-              <input id="email" name="email" type="email" autocomplete="email" data-ph-en="Optional" data-ph-zh="可选填">
-            </div>
-            <div class="field">
-              <label for="city" data-zh><span class="en">City / Address</span><span class="zh">城市 / 地址</span></label>
-              <input id="city" name="city" data-ph-en="e.g. Markham / Mississauga" data-ph-zh="例如 Markham / Mississauga">
-            </div>
-            <div class="field full">
-              <label for="project" data-zh><span class="en">Project Type</span><span class="zh">项目类型</span></label>
-              <select id="project" name="project"></select>
-            </div>
-            <div class="field">
-              <label for="budget" data-zh><span class="en">Budget Range</span><span class="zh">预算范围</span></label>
-              <select id="budget" name="budget">
-                <option value="">—</option>
-                <option>Under $5,000</option>
-                <option>$5,000 – $15,000</option>
-                <option>$15,000 – $40,000</option>
-                <option>$40,000+</option>
-                <option>Not sure yet</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="timeline" data-zh><span class="en">Timeline</span><span class="zh">期望工期</span></label>
-              <select id="timeline" name="timeline">
-                <option value="">—</option>
-                <option>ASAP</option>
-                <option>1 – 3 months</option>
-                <option>Just planning</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="property" data-zh><span class="en">Property Type</span><span class="zh">房屋类型</span></label>
-              <select id="property" name="property">
-                <option value="">—</option>
-                <option>Detached</option>
-                <option>Semi-detached</option>
-                <option>Townhouse</option>
-                <option>Condo / Apartment</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="source" data-zh><span class="en">How did you hear about us?</span><span class="zh">从哪里了解到我们?</span></label>
-              <select id="source" name="source">
-                <option value="">—</option>
-                <option>Google</option>
-                <option>Instagram</option>
-                <option>Facebook</option>
-                <option>Nextdoor</option>
-                <option>Referral</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="field full">
-              <label for="message" data-zh><span class="en">Project Details</span><span class="zh">项目说明</span></label>
-              <textarea id="message" name="message" data-ph-en="Example: replace toilet, install vanity, add pot lights, patch wall holes, or renovate bathroom." data-ph-zh="例如:更换马桶、安装洗手盆/浴室柜、加筒灯、补墙洞,或翻新卫生间。"></textarea>
-            </div>
-            <div class="field full">
-              <label data-zh><span class="en">Photos</span><span class="zh">照片</span></label>
-              <label class="drop" for="photos">
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
-                <span class="dt" data-zh><span class="en">Tap to add photos</span><span class="zh">点击添加照片</span></span>
-                <span class="dh" data-zh><span class="en">JPG / PNG · up to a few images</span><span class="zh">JPG / PNG · 可上传数张</span></span>
-              </label>
-              <input id="photos" name="attachment" type="file" accept="image/*" multiple style="display:none">
-              <div class="file-list" id="fileList"></div>
-            </div>
-          </div>
-
-          <div class="video-note">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="#1f6b3d" stroke-width="2"/></svg>
-            <p data-zh><span class="en">Have a video? Videos are easiest to send over <a href="https://wa.me/16479799301" target="_blank" rel="noopener">WhatsApp</a> — tap to send it directly.</span><span class="zh">有视频?视频用 <a href="https://wa.me/16479799301" target="_blank" rel="noopener">WhatsApp</a> 发最方便,点一下直接发给我们。</span></p>
-          </div>
-
-          <div class="form-actions">
-            <button class="btn primary" type="submit" data-zh><span class="en">Send Enquiry</span><span class="zh">提交申请</span></button>
-            <a class="btn wa" href="https://wa.me/16479799301" target="_blank" rel="noopener" data-zh><span class="en">Or message on WhatsApp</span><span class="zh">或用 WhatsApp 联系</span></a>
-            <span class="status" id="formStatus" role="status" aria-live="polite"></span>
-          </div>
-        </form>
-      </div>
-    </section>
   </main>
 
   <a class="fab" href="https://wa.me/16479799301" target="_blank" rel="noopener" aria-label="WhatsApp">
     <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.821 9.821 0 001.51 5.26l-.999 3.648 3.488-.915zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
     <span data-zh><span class="en">WhatsApp</span><span class="zh">WhatsApp 联系</span></span>
   </a>
+
+  <!-- AI CHAT ASSISTANT -->
+  <div class="chat-teaser" id="chatTeaser" role="button" tabindex="0"></div>
+  <button class="chat-fab" id="chatFab" type="button" aria-label="Chat with JL HomePro">
+    <span class="chat-badge"></span>
+    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+  </button>
+  <section class="chat-panel" id="chatPanel" aria-label="JL HomePro assistant">
+    <div class="chat-head">
+      <img src="./assets/logo.png" alt="JL HomePro">
+      <div class="ch-t"><strong>JL HomePro</strong><span id="chatStatusText">Online</span></div>
+      <button class="ch-close" id="chatClose" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-quick" id="chatQuick"></div>
+    <div class="chat-input">
+      <textarea id="chatText" rows="1" aria-label="Message"></textarea>
+      <button class="chat-send" id="chatSend" type="button" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>
+    </div>
+  </section>
 
   <footer>
     <div class="footer-inner">
@@ -1066,10 +932,9 @@
         </p>
       </div>
       <div class="footer-reg">
-        <strong data-zh><span class="en">Services</span><span class="zh">服务页面</span></strong><br>
-        <a href="./bathroom-renovation-gta.html" data-zh><span class="en">Bathroom Renovation GTA</span><span class="zh">卫生间装修 GTA</span></a><br>
-        <a href="./basement-renovation-gta.html" data-zh><span class="en">Basement Renovation GTA</span><span class="zh">地下室装修 GTA</span></a><br>
-        <a href="./kitchen-renovation-gta.html" data-zh><span class="en">Kitchen Renovation GTA</span><span class="zh">厨房装修 GTA</span></a>
+        <strong data-zh><span class="en">Talk to us</span><span class="zh">联系我们</span></strong><br>
+        <a href="#" data-open-chat data-zh><span class="en">Chat with our assistant</span><span class="zh">在线智能助手咨询</span></a><br>
+        <a href="https://wa.me/16479799301" target="_blank" rel="noopener">WhatsApp</a>
       </div>
       <div class="footer-reg">
         <strong data-zh><span class="en">Our Platforms</span><span class="zh">旗下产品</span></strong><br>
@@ -1085,35 +950,14 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    /* ===== Supabase config — fill in your two values ===== */
-    const SUPABASE_URL = "https://dajpdagydzospojmtwdi.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_fLhNBgTR5TLNo9akS3dFqw_jtbV7iik";
-    let db = null;
-    if (window.supabase && SUPABASE_URL.indexOf("REPLACE_") !== 0) {
-      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
     const enBtn = document.getElementById('enBtn');
     const zhBtn = document.getElementById('zhBtn');
-    const projectOptions = {
-      en: ['Small Job / Handyman Visit','Toilet / Vanity / Sink Replacement','Pot Lights / Lighting','Wall Patching / Drywall Repair','Kitchen Renovation','Bathroom Renovation','Basement / Rental Unit','Deck & Outdoor','Landscaping & Garden','Whole-Home Renovation','Flooring / Doors / Painting','Other'],
-      zh: ['上门小活 / 维修','更换马桶 / 洗手盆 / 浴室柜','筒灯 / 灯具安装','补墙洞 / 石膏板维修','厨房装修','卫生间改造','地下室 / 出租单元','户外露台 Deck','园艺 / 绿化','全屋翻新','地板 / 门 / 油漆','其他住宅装修']
-    };
-    function buildOptions(lang) {
-      const sel = document.getElementById('project');
-      sel.innerHTML = '';
-      projectOptions[lang].forEach(function(t){ var o = document.createElement('option'); o.textContent = t; sel.appendChild(o); });
-    }
     function setLang(lang) {
       document.documentElement.lang = lang;
       enBtn.classList.toggle('active', lang === 'en');
       zhBtn.classList.toggle('active', lang === 'zh');
-      document.querySelectorAll('[data-ph-en]').forEach(function(el){
-        el.setAttribute('placeholder', el.getAttribute(lang === 'en' ? 'data-ph-en' : 'data-ph-zh') || '');
-      });
-      buildOptions(lang);
+      if (window.__chatRefresh) window.__chatRefresh();
     }
     enBtn.addEventListener('click', function(){ setLang('en'); });
     zhBtn.addEventListener('click', function(){ setLang('zh'); });
@@ -1121,84 +965,230 @@
     var urlLang = new URLSearchParams(location.search).get('lang');
     setLang(urlLang === 'zh' ? 'zh' : (urlLang === 'en' ? 'en' : 'en'));
 
-    var photos = document.getElementById('photos');
-    var fileList = document.getElementById('fileList');
-    photos.addEventListener('change', function(){
-      fileList.innerHTML = '';
-      Array.prototype.forEach.call(photos.files, function(f){
-        var pill = document.createElement('div');
-        pill.className = 'file-pill';
-        var kb = Math.round(f.size / 1024);
-        pill.innerHTML = '<span>' + f.name + '</span><span>' + (kb > 1024 ? (kb/1024).toFixed(1)+' MB' : kb+' KB') + '</span>';
-        fileList.appendChild(pill);
-      });
-    });
-
-    var form = document.getElementById('quoteForm');
-    var status = document.getElementById('formStatus');
     function isZh(){ return document.documentElement.lang === 'zh'; }
 
-    form.addEventListener('submit', async function(e){
-      e.preventDefault();
-      if (form.querySelector('[name="botcheck"]').checked) return; // honeypot
-      if (!db) {
-        status.className = 'status err';
-        status.textContent = isZh() ? '表单尚未连接(请先填入 Supabase 信息)。现在可先用 WhatsApp 或电话联系。' : 'Form not connected yet. For now please use WhatsApp or phone.';
-        return;
+    /* ===== AI chat assistant ===== */
+    var CHAT_ENDPOINT = "https://tglnvswsdbydxljqzmwr.supabase.co/functions/v1/gemini-chat";
+    var LEAD_ENDPOINT = "https://dajpdagydzospojmtwdi.supabase.co/functions/v1/submit-lead";
+
+    var chatFab = document.getElementById('chatFab');
+    var chatPanel = document.getElementById('chatPanel');
+    var chatClose = document.getElementById('chatClose');
+    var chatBody = document.getElementById('chatBody');
+    var chatQuick = document.getElementById('chatQuick');
+    var chatText = document.getElementById('chatText');
+    var chatSend = document.getElementById('chatSend');
+    var chatTeaser = document.getElementById('chatTeaser');
+    var chatStatusText = document.getElementById('chatStatusText');
+
+    var chatHistory = [];        // {role, content} sent to the model
+    var conversationStarted = false;
+    var chatSending = false;
+    var chatAutoOpened = false;
+    var lastLeadKey = '';
+
+    var T = {
+      greeting: {
+        en: "👋 Hi, welcome to JL HomePro Solution! I'm your assistant. What can I help you with today?",
+        zh: "👋 你好，欢迎来到 JL HomePro Solution！我是在线智能助手，今天想了解点什么？"
+      },
+      quick: {
+        en: ["Learn about us", "Home repair / renovation", "Need a helping hand (labour)"],
+        zh: ["想了解你们", "家居维修 / 装修", "需要劳力工帮忙"]
+      },
+      status: { en: "Online", zh: "在线" },
+      teaser: { en: "👋 Questions? Chat with us", zh: "👋 有问题？点这里聊聊" },
+      placeholder: { en: "Type your message…", zh: "输入消息…" },
+      err: { en: "Sorry, something went wrong. Please try again, or reach us on WhatsApp at +1 (647) 979-9301.", zh: "抱歉，刚刚出了点问题。请再试一次，或通过 WhatsApp 联系我们：+1 (647) 979-9301。" }
+    };
+
+    var SYSTEM_PROMPT = [
+      "You are the friendly bilingual (English/Chinese) online assistant for JL HomePro Solution, a registered Ontario home-renovation business (BIN 1001500057) with 10+ years of hands-on experience serving the Greater Toronto Area (GTA).",
+      "",
+      "WHAT THE COMPANY DOES:",
+      "- Small jobs & handyman repairs (toilet/vanity/sink swaps, pot lights, drywall patching, small installs).",
+      "- Renovations: bathroom, kitchen, basement & legal rental units, decks & outdoor, landscaping, whole-home interior finishing.",
+      "- Also buys and flips houses, so client work is backed by real hands-on experience.",
+      "- Runs a sister matching platform, jlhomeservice.ca, where GTA homeowners can post a renovation/repair job FOR FREE and get matched with vetted, certified tradespeople.",
+      "- Contact: WhatsApp/phone +1 (647) 979-9301, email info@jlhomeservice.ca. Serves the whole GTA.",
+      "",
+      "YOUR GOALS, in order:",
+      "1) Figure out why the visitor is here. Three common paths: (a) they just want to learn about us; (b) they need a home repair or renovation; (c) they need labour / a helping hand for a job.",
+      "2) If they just want to learn about us: introduce the company warmly and briefly, mention our experience and the kinds of work we do, and invite them to tell you about any project.",
+      "3) If they need repair / renovation / labour: help them and gather THREE things - (i) what they need done, (ii) their contact info (phone, WeChat, or email), and (iii) their rough location / city in the GTA. Also let them know they can post the job for free on jlhomeservice.ca to get matched with pros quickly.",
+      "",
+      "STYLE:",
+      "- ALWAYS reply in the SAME language the user writes in (Simplified Chinese or English). Default to Chinese if unsure.",
+      "- Keep replies short, warm and natural: usually 1-3 short sentences. Ask only ONE question at a time.",
+      "- Never invent prices, dates, or promises. If they ask for a firm quote, say the team will follow up after you pass along their details, or they can send photos on WhatsApp.",
+      "- You may mention jlhomeservice.ca as a plain link.",
+      "",
+      "LEAD CAPTURE (very important):",
+      "- Once you have collected AT LEAST the visitor's contact info (phone / WeChat / email) AND a description of what they need, append EXACTLY ONE line at the very END of that reply, after your normal message, in this exact format and nothing after it:",
+      "<<LEAD>>{\"name\":\"\",\"need\":\"\",\"contact\":\"\",\"location\":\"\",\"category\":\"repair|renovation|labour|inquiry\"}<<END>>",
+      "- Fill fields with what you know; leave a field as an empty string if unknown. Do NOT mention this line, the word LEAD, or JSON to the visitor - it is hidden and stripped out automatically.",
+      "- Only emit the <<LEAD>> line when you actually have contact info. Emit it again (updated) if they later give more/corrected details."
+    ].join("\n");
+
+    function escapeHtml(t){ return t.replace(/[&<>\"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function linkify(t){
+      t = escapeHtml(t);
+      t = t.replace(/\bhttps?:\/\/[^\s<]+/g, function(u){ return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>'; });
+      t = t.replace(/\b(jlhomeservice\.(?:ca|online|site))\b/g, function(m,d){ return '<a href="https://'+d+'" target="_blank" rel="noopener">'+d+'</a>'; });
+      return t;
+    }
+
+    function scrollChat(){ chatBody.scrollTop = chatBody.scrollHeight; }
+    function addMsg(role, text){
+      var el = document.createElement('div');
+      el.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+      el.innerHTML = role === 'user' ? escapeHtml(text) : linkify(text);
+      chatBody.appendChild(el); scrollChat();
+    }
+    function showTyping(){
+      var el = document.createElement('div');
+      el.className = 'chat-typing'; el.id = 'chatTyping';
+      el.innerHTML = '<i></i><i></i><i></i>';
+      chatBody.appendChild(el); scrollChat();
+    }
+    function hideTyping(){ var t = document.getElementById('chatTyping'); if (t) t.remove(); }
+
+    function renderQuick(){
+      chatQuick.innerHTML = '';
+      if (conversationStarted) return;
+      var lang = isZh() ? 'zh' : 'en';
+      T.quick[lang].forEach(function(label){
+        var b = document.createElement('button');
+        b.type = 'button'; b.textContent = label;
+        b.addEventListener('click', function(){ sendMessage(label); });
+        chatQuick.appendChild(b);
+      });
+    }
+    function renderStarter(){
+      chatBody.innerHTML = '';
+      addMsg('bot', T.greeting[isZh() ? 'zh' : 'en']);
+      renderQuick();
+    }
+    function refreshStaticText(){
+      var lang = isZh() ? 'zh' : 'en';
+      chatStatusText.textContent = T.status[lang];
+      chatText.setAttribute('placeholder', T.placeholder[lang]);
+      chatTeaser.textContent = T.teaser[lang];
+    }
+    window.__chatRefresh = function(){ refreshStaticText(); if (!conversationStarted) renderStarter(); };
+
+    function extractLead(text){
+      var m = text.match(/<<LEAD>>([\s\S]*?)<<END>>/);
+      var clean = text.replace(/<<LEAD>>[\s\S]*?<<END>>/g, '').trim();
+      var lead = null;
+      if (m) { try { lead = JSON.parse(m[1].trim()); } catch(e){ lead = null; } }
+      return { clean: clean, lead: lead };
+    }
+    function saveLead(lead){
+      if (!lead) return;
+      var contact = (lead.contact || '').trim();
+      if (!contact) return;
+      var key = JSON.stringify(lead);
+      if (key === lastLeadKey) return;   // avoid duplicate inserts
+      lastLeadKey = key;
+      var isEmail = /@/.test(contact) && !/\d{5,}/.test(contact);
+      fetch(LEAD_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: (lead.name || '').trim() || (isZh() ? '网站访客' : 'Website visitor'),
+          phone: contact,
+          email: isEmail ? contact : '',
+          city: (lead.location || '').trim(),
+          project_type: 'AI chat - ' + (lead.category || 'inquiry'),
+          message: '[AI 聊天] ' + (lead.need || '') + (lead.location ? ('\n位置: ' + lead.location) : '') + '\n联系: ' + contact,
+          photo_urls: [],
+          lang: document.documentElement.lang
+        })
+      }).catch(function(){});
+    }
+
+    async function callAI(userText){
+      var body = { message: userText, conversationHistory: chatHistory.slice() };
+      var res = await fetch(CHAT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      var data = await res.json();
+      if (!res.ok || !data || data.success === false || !data.message) {
+        throw new Error((data && data.error) || 'chat_failed');
       }
-      status.className = 'status';
-      status.textContent = isZh() ? '正在提交…' : 'Sending…';
+      return data.message;
+    }
+
+    async function sendMessage(text){
+      text = (text || '').trim();
+      if (!text || chatSending) return;
+      if (!conversationStarted) {
+        conversationStarted = true;
+        chatQuick.innerHTML = '';
+        chatHistory.push({ role: 'user', content: SYSTEM_PROMPT });
+        chatHistory.push({ role: 'model', content: T.greeting[isZh() ? 'zh' : 'en'] });
+      }
+      addMsg('user', text);
+      chatHistory.push({ role: 'user', content: text });
+      chatText.value = ''; chatText.style.height = 'auto';
+      chatSending = true; chatSend.disabled = true;
+      showTyping();
       try {
-        var fd = new FormData(form);
-        // 1) upload photos to storage
-        var urls = [];
-        var files = photos.files;
-        for (var i = 0; i < files.length; i++) {
-          var f = files[i];
-          var safe = f.name.replace(/[^\w.\-]/g, '_');
-          var path = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '-' + safe;
-          var up = await db.storage.from('lead-photos').upload(path, f, { cacheControl: '3600', upsert: false });
-          if (up.error) throw up.error;
-          var pub = db.storage.from('lead-photos').getPublicUrl(path);
-          urls.push(pub.data.publicUrl);
-        }
-        // 2) compose extra qualifiers + UTM attribution into the message
-        //    (kept inside `message` so no Supabase schema change is required yet)
-        var extras = [];
-        if (fd.get('budget'))   extras.push('Budget: ' + fd.get('budget'));
-        if (fd.get('timeline')) extras.push('Timeline: ' + fd.get('timeline'));
-        if (fd.get('property')) extras.push('Property: ' + fd.get('property'));
-        if (fd.get('source'))   extras.push('Heard via: ' + fd.get('source'));
-        var utm = new URLSearchParams(location.search);
-        ['utm_source','utm_medium','utm_campaign','utm_content'].forEach(function(k){
-          if (utm.get(k)) extras.push(k + '=' + utm.get(k));
-        });
-        var composedMsg = (extras.length ? '[' + extras.join(' | ') + ']\n' : '') + (fd.get('message') || '');
-        // 3) insert lead row
-        var ins = await db.from('leads').insert({
-          name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'),
-          city: fd.get('city'), project_type: fd.get('project'), message: composedMsg,
-          photo_urls: urls, lang: document.documentElement.lang
-        });
-        if (ins.error) throw ins.error;
-        status.className = 'status ok';
-        status.textContent = isZh() ? '已收到!我们会尽快回复你安排看现场。' : "Got it! We'll reply shortly to arrange a site visit.";
-        form.reset(); fileList.innerHTML = '';
-      } catch (err) {
-        status.className = 'status err';
-        status.textContent = isZh() ? '提交失败,请改用 WhatsApp 或电话联系我们。' : 'Could not send — please reach us on WhatsApp or by phone.';
+        var reply = await callAI(text);
+        hideTyping();
+        var parsed = extractLead(reply);
+        var shown = parsed.clean || (isZh() ? '好的！' : 'Got it!');
+        addMsg('bot', shown);
+        chatHistory.push({ role: 'model', content: reply });
+        if (parsed.lead) saveLead(parsed.lead);
+      } catch (e) {
+        hideTyping();
+        addMsg('bot', T.err[isZh() ? 'zh' : 'en']);
+      } finally {
+        chatSending = false; chatSend.disabled = false;
+        chatText.focus();
       }
+    }
+
+    function openChat(){
+      chatTeaser.classList.add('hide');
+      chatPanel.classList.add('open');
+      chatFab.style.display = 'none';
+      if (!chatBody.children.length) { refreshStaticText(); renderStarter(); }
+      setTimeout(function(){ if (window.innerWidth > 620) chatText.focus(); }, 250);
+    }
+    function closeChat(){
+      chatPanel.classList.remove('open');
+      chatFab.style.display = '';
+    }
+
+    chatFab.addEventListener('click', openChat);
+    chatClose.addEventListener('click', closeChat);
+    chatTeaser.addEventListener('click', openChat);
+    chatTeaser.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChat(); } });
+    chatSend.addEventListener('click', function(){ sendMessage(chatText.value); });
+    chatText.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatText.value); }
+    });
+    chatText.addEventListener('input', function(){
+      chatText.style.height = 'auto';
+      chatText.style.height = Math.min(chatText.scrollHeight, 110) + 'px';
+    });
+    document.querySelectorAll('[data-open-chat]').forEach(function(el){
+      el.addEventListener('click', function(e){ e.preventDefault(); openChat(); });
     });
 
-    // FAQ accordion
-    document.querySelectorAll('.faq-q').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var item = btn.closest('.faq-item');
-        var isOpen = item.classList.contains('open');
-        document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
-        if (!isOpen) item.classList.add('open');
-      });
-    });
+    // proactive greeting
+    refreshStaticText();
+    setTimeout(function(){ if (!chatPanel.classList.contains('open')) chatTeaser.classList.remove('hide'); }, 1200);
+    setTimeout(function(){
+      if (!chatAutoOpened && window.innerWidth > 640 && !chatPanel.classList.contains('open')) {
+        chatAutoOpened = true; openChat();
+      }
+    }, 2600);
 
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(en){ if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
